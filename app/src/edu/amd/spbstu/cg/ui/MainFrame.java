@@ -26,10 +26,21 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_COPY = "Copy";
     private static final String MENU_ITEM_PASTE = "Paste";
 
+    private static final String EDITOR_PANE = "Editor";
+    private static final String DESIGNER_PANE = "Designer";
+
+    private final EditorPanel editorPanel;
+    private final DesignerPanel designerPanel;
+
+
     public MainFrame() throws HeadlessException {
         super(TITLE);
 
+        editorPanel = new EditorPanel();
+        designerPanel = new DesignerPanel();
+
         createMenu();
+        createTabbedPane(editorPanel, designerPanel);
         showGUI();
     }
 
@@ -68,5 +79,13 @@ public class MainFrame extends JFrame {
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         setJMenuBar(menuBar);
+    }
+
+    private void createTabbedPane(EditorPanel editorPanel, DesignerPanel designerPanel) {
+        final JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab(EDITOR_PANE, editorPanel);
+        tabbedPane.addTab(DESIGNER_PANE, designerPanel);
+
+        add(tabbedPane);
     }
 }

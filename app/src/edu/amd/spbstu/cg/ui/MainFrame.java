@@ -5,6 +5,9 @@
 package edu.amd.spbstu.cg.ui;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
 import javax.swing.*;
 
 /**
@@ -88,5 +91,20 @@ public class MainFrame extends JFrame {
         tabbedPane.addTab(DESIGNER_PANE, designerPanel);
 
         add(tabbedPane);
+    }
+
+    private final class onSaveListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
+                    writer.print(editorPanel.getText());
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
     }
 }

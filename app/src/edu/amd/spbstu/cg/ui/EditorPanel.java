@@ -26,4 +26,8 @@ public class EditorPanel extends JPanel {
 
         add(splitPane, BorderLayout.CENTER);
     }
+
+    public String getText() {
+        return textPane.getText();
+    }
 }

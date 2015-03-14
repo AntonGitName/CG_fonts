@@ -6,8 +6,6 @@ package edu.amd.spbstu.cg.ui;
 
 import java.awt.*;
 import javax.swing.*;
-import com.jgoodies.forms.factories.*;
-import com.jgoodies.forms.layout.*;
 
 /**
  * @author unknown

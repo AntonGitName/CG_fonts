@@ -8,7 +8,8 @@ import java.awt.*;
 import javax.swing.*;
 
 /**
- * @author unknown
+ * @author iAnton
+ * @since 14/03/15
  */
 public class MainFrame extends JFrame {
 
@@ -33,7 +34,7 @@ public class MainFrame extends JFrame {
     private final DesignerPanel designerPanel;
 
 
-    public MainFrame() throws HeadlessException {
+    public MainFrame() {
         super(TITLE);
 
         editorPanel = new EditorPanel();

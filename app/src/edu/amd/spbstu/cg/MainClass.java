@@ -1,4 +1,6 @@
-package edu.amd.spbstu.cg.ui;
+package edu.amd.spbstu.cg;
+
+import edu.amd.spbstu.cg.ui.MainFrame;
 
 import javax.swing.*;
 

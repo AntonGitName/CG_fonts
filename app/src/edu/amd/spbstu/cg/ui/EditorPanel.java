@@ -30,4 +30,8 @@ public class EditorPanel extends JPanel {
     public String getText() {
         return textPane.getText();
     }
+
+    public void setText(String text) {
+        textPane.setText(text);
+    }
 }

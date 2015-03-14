@@ -7,7 +7,10 @@ package edu.amd.spbstu.cg.ui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import javax.swing.*;
 
 /**
@@ -64,6 +67,9 @@ public class MainFrame extends JFrame {
         final JMenuItem saveFileMenuItem = new JMenuItem(MENU_ITEM_SAVE);
         final JMenuItem openFileMenuItem = new JMenuItem(MENU_ITEM_OPEN);
         final JMenuItem exitFileMenuItem = new JMenuItem(MENU_ITEM_EXIT);
+        saveFileMenuItem.addActionListener(new OnSaveListener());
+        openFileMenuItem.addActionListener(new OnOpenListener());
+        exitFileMenuItem.addActionListener(new OnExitListener());
 
         fileMenu.add(newFileMenuItem);
         fileMenu.add(saveFileMenuItem);
@@ -93,7 +99,7 @@ public class MainFrame extends JFrame {
         add(tabbedPane);
     }
 
-    private final class onSaveListener implements ActionListener {
+    private final class OnSaveListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -103,6 +109,36 @@ public class MainFrame extends JFrame {
                     writer.print(editorPanel.getText());
                 } catch (FileNotFoundException e1) {
                     e1.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private final class OnOpenListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    editorPanel.setText(new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().toURI()))));
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private final class OnExitListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (Frame frame : Frame.getFrames())
+            {
+                if (frame.isActive())
+                {
+                    WindowEvent windowClosing = new WindowEvent(frame, WindowEvent.WINDOW_CLOSING);
+                    frame.dispatchEvent(windowClosing);
                 }
             }
         }

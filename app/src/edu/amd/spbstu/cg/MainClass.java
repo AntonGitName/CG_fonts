@@ -1,6 +1,4 @@
-package edu.amd.spbstu.cg;
-
-import edu.amd.spbstu.cg.ui.MainFrame;
+package edu.amd.spbstu.cg.ui;
 
 import javax.swing.*;
 
@@ -11,11 +9,8 @@ import javax.swing.*;
 public class MainClass {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
-
-            @Override
             public void run() {
                 MainFrame frame = new MainFrame();
-                frame.showGUI();
             }
         });
     }

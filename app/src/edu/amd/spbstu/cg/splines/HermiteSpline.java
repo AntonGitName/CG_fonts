@@ -24,7 +24,7 @@ public class HermiteSpline {
         final float t2 = t * t;
         final float t3 = t2 * t;
 
-        return (1 - 3 * t2 + 2 * t3) * p1 + t2 * (3 - 2 * t) * p2 + t * (1 - 2 * t + t2) * q1 - t2 * (t - 1) * q2;
+        return (1.f - 3 * t2 + 2 * t3) * p1 + t2 * (3.f - 2 * t) * p2 + t * (1.f - 2 * t + t2) * q1 - t2 * (t - 1.f) * q2;
     }
 
     public void hermite(float[] p, int m, float q0, float qm, int div, float[] out) {

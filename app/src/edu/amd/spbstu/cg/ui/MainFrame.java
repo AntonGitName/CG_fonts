@@ -24,6 +24,8 @@ public class MainFrame extends JFrame {
 
     private static final String MENU_FILE = "File";
     private static final String MENU_EDIT = "Edit";
+    private static final String MENU_LINE = "Line";
+    private static final String MENU_SUB_LINE = "Edit";
     private static final String MENU_ITEM_NEW = "New";
     private static final String MENU_ITEM_OPEN = "Open";
     private static final String MENU_ITEM_SAVE = "Save";
@@ -32,6 +34,12 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_REDO = "Redo";
     private static final String MENU_ITEM_COPY = "Copy";
     private static final String MENU_ITEM_PASTE = "Paste";
+    private static final String MENU_ITEM_ADD = "Add";
+    private static final String MENU_ITEM_REMOVE = "Remove";
+    private static final String MENU_ITEM_SET_VECTOR = "Set Vector";
+    private static final String MENU_ITEM_ADD_POINT = "Add Point";
+    private static final String MENU_ITEM_REMOVE_POINT = "Remove Point";
+    private static final String MENU_ITEM_MOVE_POINT = "Move Point";
 
     private static final String EDITOR_PANE = "Editor";
     private static final String DESIGNER_PANE = "Designer";
@@ -62,6 +70,8 @@ public class MainFrame extends JFrame {
         final JMenuBar menuBar = new JMenuBar();
         final JMenu fileMenu = new JMenu(MENU_FILE);
         final JMenu editMenu = new JMenu(MENU_EDIT);
+        final JMenu lineMenu = new JMenu(MENU_LINE);
+        final JMenu lineSubMenu = new JMenu(MENU_SUB_LINE);
 
         final JMenuItem newFileMenuItem = new JMenuItem(MENU_ITEM_NEW);
         final JMenuItem saveFileMenuItem = new JMenuItem(MENU_ITEM_SAVE);
@@ -86,8 +96,26 @@ public class MainFrame extends JFrame {
         editMenu.add(copyEditItem);
         editMenu.add(pasteEditItem);
 
+        final JMenuItem addPointItem = new JMenuItem(MENU_ITEM_ADD_POINT);
+        final JMenuItem removePointItem = new JMenuItem(MENU_ITEM_REMOVE_POINT);
+        final JMenuItem movePointItem = new JMenuItem(MENU_ITEM_MOVE_POINT);
+
+        lineSubMenu.add(addPointItem);
+        lineSubMenu.add(removePointItem);
+        lineSubMenu.add(movePointItem);
+
+        final JMenuItem addLineItem = new JMenuItem(MENU_ITEM_ADD);
+        final JMenuItem removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
+        final JMenuItem setVectorLineItem = new JMenuItem(MENU_ITEM_SET_VECTOR);
+
+        lineMenu.add(addLineItem);
+        lineMenu.add(removeLineItem);
+        lineMenu.add(lineSubMenu);
+        lineMenu.add(setVectorLineItem);
+
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
+        menuBar.add(lineMenu);
         setJMenuBar(menuBar);
     }
 

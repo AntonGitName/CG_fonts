@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-
 /**
  * @author iAnton
  * @since 14/03/15

@@ -74,9 +74,9 @@ public class PaintArea extends JPanel {
             if (v.size() > 5) {
                 Point q0 = new Point();
                 Point qm = new Point();
-                q0.x = -1;
-                q0.y = 1;
-                qm.x = 1;
+                q0.x = 1;
+                q0.y = 0;
+                qm.x = -1;
                 qm.y = 0;
                 line = HermiteSpline.hermite(v, q0, qm, 10);
             }

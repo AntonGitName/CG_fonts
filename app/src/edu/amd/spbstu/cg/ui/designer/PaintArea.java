@@ -21,6 +21,7 @@ public class PaintArea extends JPanel {
     private static final int POINTS_PER_SPLINE = 10;
 
     private final List<UserSelectionLine> selectionLines;
+    private final MouseListener mouseListener = new MouseListener();
     private ActionType actionType;
     private int numPointMoved = -1;
     private int selectedLine;
@@ -32,19 +33,8 @@ public class PaintArea extends JPanel {
         selectionLines.add(new UserSelectionLine());
         selectedLine = 0;
 
-        addMouseListener(
-                new MouseAdapter() {
-                    @Override
-                    public void mouseReleased(MouseEvent e) {
-                        drawJPanelMouseReleased(e);
-                    }
-
-                    @Override
-                    public void mousePressed(MouseEvent e) {
-                        drawJPanelMousePressed(e);
-                    }
-                }
-        );
+        addMouseListener(mouseListener);
+        addMouseMotionListener(mouseListener);
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -168,6 +158,23 @@ public class PaintArea extends JPanel {
 
     private enum ActionType {
         MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT
+    }
+
+    private final class MouseListener extends MouseAdapter {
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            drawJPanelMouseReleased(e);
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            drawJPanelMousePressed(e);
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            System.out.println(e.getPoint());
+        }
     }
 
 }

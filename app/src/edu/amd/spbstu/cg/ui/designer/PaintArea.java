@@ -15,9 +15,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author iAnton
@@ -28,19 +26,16 @@ public class PaintArea extends JPanel {
     private static final int MIN_POINTS_IN_LINE = 2;
     private static final int POINTS_PER_SPLINE = 10;
     private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
+
     private final List<UserSelectionLine> selectionLines;
     private final Paint texturePaint;
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
-    private Set<Color> colorSet = new HashSet<Color>();
 
     public PaintArea() {
-        initColors();
         selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
-
-        selectionLines.add(activeLine = new UserSelectionLine(Color.RED));
 
         final MouseListener mouseListener = new MouseListener();
         addMouseListener(mouseListener);
@@ -53,15 +48,6 @@ public class PaintArea extends JPanel {
             e.printStackTrace();
         }
         texturePaint = new TexturePaint(imagePattern, new Rectangle(60, 60));
-    }
-
-    private void initColors() {
-        colorSet.add(Color.blue);
-        colorSet.add(Color.cyan);
-        colorSet.add(Color.green);
-        colorSet.add(Color.orange);
-        colorSet.add(Color.pink);
-        colorSet.add(Color.darkGray);
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -133,18 +119,19 @@ public class PaintArea extends JPanel {
     }
 
 
-    public void addLine() {
+    public int addLine(Color color) {
         if (selectionLines.size() < 7) {
-            Color col = (Color) colorSet.toArray()[colorSet.size() - 1];
-            selectionLines.add(activeLine = new UserSelectionLine(col));
-            colorSet.remove(col);
+            selectionLines.add(activeLine = new UserSelectionLine(color));
             repaint();
+            return selectionLines.size() - 1;
         }
+        return -1;
     }
 
-    public void removeLine() {
+    public void removeLine(int x) {
         if (selectionLines.size() > 1) {
-            selectionLines.remove(activeLine);
+            activeLine = selectionLines.get(0);
+            selectionLines.remove(x);
             activeLine = selectionLines.get(selectionLines.size() - 1);
             repaint();
         }

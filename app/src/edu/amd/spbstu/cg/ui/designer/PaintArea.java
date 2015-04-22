@@ -27,6 +27,9 @@ public class PaintArea extends JPanel {
     private static final int POINTS_PER_SPLINE = 10;
     private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
 
+    private static final Color startTangentColor = Color.getColor("bronze", 0xA9A121);
+    private static final Color endTangentColor = Color.getColor("violet", 0x8E21A9);
+
     private final List<UserSelectionLine> selectionLines;
     private final Paint texturePaint;
     private UserSelectionLine activeLine;
@@ -108,10 +111,10 @@ public class PaintArea extends JPanel {
             for (PointFloat p : line.getPoints()) {
                 g2.fillOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
             }
-            g2.setColor(Color.green);
+            g2.setColor(startTangentColor);
             g2.fillOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g2.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);
-            g2.setColor(Color.blue);
+            g2.setColor(endTangentColor);
             g2.fillOval((int) line.getFakeEnd().x - POINT_DIAMETER / 2, (int) line.getFakeEnd().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g2.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
         }

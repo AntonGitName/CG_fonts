@@ -1,5 +1,7 @@
 package edu.amd.spbstu.cg.splines;
 
+import edu.amd.spbstu.cg.geom.PointFloat;
+
 import java.util.ArrayList;
 import java.util.List;
 

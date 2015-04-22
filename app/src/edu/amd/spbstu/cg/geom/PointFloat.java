@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.splines;
+package edu.amd.spbstu.cg.geom;
 
 import java.awt.*;
 
@@ -6,16 +6,12 @@ import java.awt.*;
  * @author iAnton
  * @since 22/04/15
  */
-public class PointFloat {
+public final class PointFloat {
     public float x;
     public float y;
 
     public PointFloat(Point p) {
         this(p.x, p.y);
-    }
-
-    public PointFloat() {
-        this(0.0f, 0.0f);
     }
 
     public PointFloat(float x, float y) {

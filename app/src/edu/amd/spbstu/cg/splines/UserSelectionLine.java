@@ -1,9 +1,10 @@
 package edu.amd.spbstu.cg.splines;
 
+import edu.amd.spbstu.cg.geom.PointFloat;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author iAnton
@@ -30,12 +31,12 @@ public class UserSelectionLine {
         color = lineColor;
     }
 
+    private static float dist(PointFloat p1, PointFloat p2) {
+        return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
+    }
 
     public Color getColor() {
         return color;
-    }
-    private static float dist(PointFloat p1, PointFloat p2) {
-        return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
     }
 
     private float dist(int i, PointFloat point) {
@@ -56,10 +57,6 @@ public class UserSelectionLine {
 
     public int size() {
         return points.size();
-    }
-
-    public boolean add(PointFloat pointFloat) {
-        return points.add(pointFloat);
     }
 
     public PointFloat get(int index) {
@@ -96,10 +93,6 @@ public class UserSelectionLine {
 
     public PointFloat getFirstPoint() {
         return points.get(0);
-    }
-
-    public PointFloat getLastPoint() {
-        return points.get(points.size() - 1);
     }
 
     public PointFloat getEndTangent() {

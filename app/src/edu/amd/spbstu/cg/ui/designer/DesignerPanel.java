@@ -13,6 +13,11 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     private static final Dimension MINIMUM_SIZE = new Dimension(100, 50);
     private static final int DIVIDER_LOCATION = 150;
 
+    private static final String REMOVE_ICON = "res/remove.png";
+    private static final String ADD_ICON = "res/add.png";
+
+    private static final double LEFT_PANEL_DIVIDER = 0.9;
+
     private final JList linelist;
     private final PaintArea paintArea;
 
@@ -22,10 +27,16 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         linelist.addListSelectionListener(this);
         final JScrollPane listScrollPane = new JScrollPane(linelist);
+        final JPanel bottonsPanel = new JPanel();
+
+        bottonsPanel.add(new JButton(new ImageIcon(ADD_ICON)));
+        bottonsPanel.add(new JButton(new ImageIcon(REMOVE_ICON)));
+
+        final JSplitPane leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScrollPane, bottonsPanel);
+
 
         paintArea = new PaintArea();
-
-        final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, paintArea);
+        final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, paintArea);
 
         splitPane.setDividerLocation(DIVIDER_LOCATION);
         splitPane.setEnabled(false);
@@ -34,6 +45,10 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         paintArea.setMinimumSize(MINIMUM_SIZE);
 
         add(splitPane);
+
+        leftPanel.setDividerLocation(LEFT_PANEL_DIVIDER);
+        leftPanel.setResizeWeight(LEFT_PANEL_DIVIDER);
+        leftPanel.setEnabled(false);
     }
 
     @Override

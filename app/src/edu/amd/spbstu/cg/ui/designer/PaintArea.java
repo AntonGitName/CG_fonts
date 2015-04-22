@@ -5,7 +5,6 @@ import edu.amd.spbstu.cg.splines.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
 import javax.imageio.ImageIO;
-import javax.sound.sampled.ReverbType;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -33,7 +32,6 @@ public class PaintArea extends JPanel {
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
-    private int selectedLine;
 
     public PaintArea() {
         selectionLines = new ArrayList<>();
@@ -65,33 +63,12 @@ public class PaintArea extends JPanel {
         this.activeLine = selectionLines.get(activeLine);
     }
 
-
-    private void RebuildLine(PointFloat p, UserSelectionLine line) {
-
-        switch (actionType) {
-            case MOVE_POINT:
-                line.set(numPointMoved, p);
-                break;
-            case CHANGE_VECTOR:
-                if (numPointMoved == 0) {
-                    line.setStartTangent(p.sub(line.getFirstPoint()));
-                }
-                if (numPointMoved == 1) {
-                    line.setEndTangent(p.sub(line.getFirstPoint()));
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         final Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-//        g2.setColor(Color.RED);
         g2.setPaint(texturePaint);
 
         final Path2D.Float path = new Path2D.Float();
@@ -106,7 +83,6 @@ public class PaintArea extends JPanel {
             if (line.size() >= MIN_POINTS_IN_LINE) {
                 final List<PointFloat> spline = new HermiteSpline(line.getPoints(), line.getStartTangent().neg(), line.getEndTangent()).getSpline(POINTS_PER_SPLINE);
                 for (int i = 0; i < spline.size() - 1; ++i) {
-//                    g2.drawLine((int) spline.get(i).x, (int) spline.get(i).y, (int) spline.get(i + 1).x, (int) spline.get(i + 1).y);
                     path.lineTo(spline.get(i).x, spline.get(i).y);
                 }
             }

@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.ui;
+package edu.amd.spbstu.cg.ui.editor;
 
 import javax.swing.*;
 import java.awt.*;

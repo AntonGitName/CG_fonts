@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.ui;
+package edu.amd.spbstu.cg.ui.designer;
 
 import edu.amd.spbstu.cg.splines.HermiteSpline;
 import edu.amd.spbstu.cg.splines.PointFloat;

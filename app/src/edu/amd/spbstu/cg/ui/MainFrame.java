@@ -4,14 +4,19 @@
 
 package edu.amd.spbstu.cg.ui;
 
+import edu.amd.spbstu.cg.ui.designer.DesignerPanel;
+import edu.amd.spbstu.cg.ui.editor.EditorPanel;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import javax.swing.*;
 
 /**
  * @author iAnton

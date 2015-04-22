@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.ui;
+package edu.amd.spbstu.cg.ui.designer;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;

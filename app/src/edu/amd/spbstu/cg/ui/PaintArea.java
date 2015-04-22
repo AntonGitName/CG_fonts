@@ -23,13 +23,14 @@ public class PaintArea extends JPanel {
     private final List<UserSelectionLine> selectionLines;
     private ActionType actionType;
     private int numPointMoved = -1;
-    private int numLineMoved = -1;
+    private int selectedLine;
 
     public PaintArea() {
         selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
 
         selectionLines.add(new UserSelectionLine());
+        selectedLine = 0;
 
         addMouseListener(
                 new MouseAdapter() {
@@ -54,43 +55,43 @@ public class PaintArea extends JPanel {
         return (x - x0) * (x - x0) + (y - y0) * (y - y0) < r * r;
     }
 
+    public void setSelectedLine(int selectedLine) {
+        this.selectedLine = selectedLine;
+    }
+
     private void drawJPanelMousePressed(MouseEvent event) {
         PointFloat p = new PointFloat(event.getPoint());
-
-        for (UserSelectionLine line : selectionLines) {
-
-            if (!event.isMetaDown()) {
-                for (int i = 0; i < line.getPoints().size(); ++i) {
-                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
-                        actionType = ActionType.MOVE_POINT;
-                        numPointMoved = i;
-                        numLineMoved = selectionLines.indexOf(line);
-                        return;
-                    }
-
-                }
-
-                if (isInCircle(p, line.getFakeStart(), POINT_DIAMETER)) {
-                    actionType = ActionType.CHANGE_VECTOR;
-                    numPointMoved = 0;
-                    numLineMoved = selectionLines.indexOf(line);
+        final UserSelectionLine line = selectionLines.get(selectedLine);
+        if (!event.isMetaDown()) {
+            for (int i = 0; i < line.getPoints().size(); ++i) {
+                if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
+                    actionType = ActionType.MOVE_POINT;
+                    numPointMoved = i;
+                    selectedLine = selectionLines.indexOf(line);
                     return;
                 }
 
-                if (isInCircle(p, line.getFakeEnd(), POINT_DIAMETER)) {
-                    actionType = ActionType.CHANGE_VECTOR;
-                    numPointMoved = 1;
-                    numLineMoved = selectionLines.indexOf(line);
+            }
+
+            if (isInCircle(p, line.getFakeStart(), POINT_DIAMETER)) {
+                actionType = ActionType.CHANGE_VECTOR;
+                numPointMoved = 0;
+                selectedLine = selectionLines.indexOf(line);
+                return;
+            }
+
+            if (isInCircle(p, line.getFakeEnd(), POINT_DIAMETER)) {
+                actionType = ActionType.CHANGE_VECTOR;
+                numPointMoved = 1;
+                selectedLine = selectionLines.indexOf(line);
+            }
+        } else {
+            for (int i = 0; i < line.getPoints().size(); ++i) {
+                if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
+                    actionType = ActionType.DELETE_POINT;
+                    numPointMoved = i;
+                    selectedLine = selectionLines.indexOf(line);
                     return;
-                }
-            } else {
-                for (int i = 0; i < line.getPoints().size(); ++i) {
-                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
-                        actionType = ActionType.DELETE_POINT;
-                        numPointMoved = i;
-                        numLineMoved = selectionLines.indexOf(line);
-                        return;
-                    }
                 }
             }
         }
@@ -98,10 +99,10 @@ public class PaintArea extends JPanel {
 
     private void drawJPanelMouseReleased(MouseEvent event) {
         final PointFloat p = new PointFloat(event.getPoint());
-        if (numLineMoved == -1) {
+        if (selectedLine == -1) {
             return;
         }
-        final UserSelectionLine line = selectionLines.get(numLineMoved);
+        final UserSelectionLine line = selectionLines.get(selectedLine);
         if (!event.isMetaDown()) {
             switch (actionType) {
                 case MOVE_POINT:

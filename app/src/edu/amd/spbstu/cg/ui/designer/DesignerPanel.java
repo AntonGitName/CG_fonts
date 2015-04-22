@@ -27,13 +27,17 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         linelist.addListSelectionListener(this);
         final JScrollPane listScrollPane = new JScrollPane(linelist);
-        final JPanel bottonsPanel = new JPanel();
-
-        bottonsPanel.add(new JButton(new ImageIcon(ADD_ICON)));
-        bottonsPanel.add(new JButton(new ImageIcon(REMOVE_ICON)));
-
-        final JSplitPane leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScrollPane, bottonsPanel);
-
+        final JPanel bottomPanel = new JPanel();
+        final JPanel buttonsPanel = new JPanel();
+        final JPanel textPanel = new JPanel();
+        bottomPanel.add(buttonsPanel);
+        bottomPanel.add(textPanel);
+        buttonsPanel.add(new JButton(new ImageIcon(ADD_ICON)));
+        buttonsPanel.add(new JButton(new ImageIcon(REMOVE_ICON)));
+        textPanel.add(new JTextArea("Current letter"));
+        textPanel.setEnabled(false);
+        final JSplitPane leftPanelB = new JSplitPane(JSplitPane.VERTICAL_SPLIT, buttonsPanel, textPanel);
+        final JSplitPane leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScrollPane, leftPanelB);
 
         paintArea = new PaintArea();
         final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, paintArea);
@@ -49,6 +53,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         leftPanel.setDividerLocation(LEFT_PANEL_DIVIDER);
         leftPanel.setResizeWeight(LEFT_PANEL_DIVIDER);
         leftPanel.setEnabled(false);
+        leftPanelB.setEnabled(false);
     }
 
     public void addLine() {

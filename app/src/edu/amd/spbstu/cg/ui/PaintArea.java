@@ -2,6 +2,7 @@ package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.splines.HermiteSpline;
 import edu.amd.spbstu.cg.splines.PointFloat;
+import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,28 +18,22 @@ import java.util.List;
 public class PaintArea extends JPanel {
     private static final Color DRAW_COLOR = Color.RED;
     private static final int DRAW_DIAMETER = 14;
-    private final List<PointFloat> selectedPoints = new ArrayList<>();
+    private static final int MIN_POINTS_IN_LINE = 2;
+    private static final int POINTS_PER_SPLINE = 10;
     private final Color drawColor;
     private final int drawDiameter;
-    private PointFloat fakeStart = new PointFloat();
-    private PointFloat fakeEnd = new PointFloat();
-    private PointFloat startTangent = new PointFloat(-100, 0);
-    private PointFloat endTangent = new PointFloat(100, 0);
+    private final List<UserSelectionLine> selectionLines;
     private ActionType actionType;
     private int numPointMoved = -1;
+    private int numLineMoved = -1;
 
     public PaintArea() {
         drawColor = DRAW_COLOR;
         drawDiameter = DRAW_DIAMETER;
-        final PointFloat p1 = new PointFloat(250.f, 250.f);
-        final PointFloat p2 = new PointFloat(450.f, 250.f);
-        selectedPoints.add(p1);
-        selectedPoints.add(p2);
-        fakeStart.x = (int) (p1.x + startTangent.x);
-        fakeStart.y = (int) (p1.y + startTangent.y);
-        fakeEnd.x = (int) (p2.x + endTangent.x);
-        fakeEnd.y = (int) (p2.y + endTangent.y);
+        selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
+
+        selectionLines.add(new UserSelectionLine());
 
         addMouseListener(
                 new MouseAdapter() {
@@ -66,82 +61,78 @@ public class PaintArea extends JPanel {
     private void drawJPanelMousePressed(MouseEvent event) {
         PointFloat p = new PointFloat(event.getPoint());
 
-        if (!event.isMetaDown()) {
-            for (int i = 0; i < selectedPoints.size(); ++i) {
-                if (isInCircle(p, selectedPoints.get(i), DRAW_DIAMETER)) {
-                    actionType = ActionType.MOVE_POINT;
-                    numPointMoved = i;
+        for (UserSelectionLine line : selectionLines) {
+
+            if (!event.isMetaDown()) {
+                for (int i = 0; i < line.getPoints().size(); ++i) {
+                    if (isInCircle(p, line.get(i), DRAW_DIAMETER)) {
+                        actionType = ActionType.MOVE_POINT;
+                        numPointMoved = i;
+                        numLineMoved = selectionLines.indexOf(line);
+                        return;
+                    }
+
+                }
+
+                if (isInCircle(p, line.getFakeStart(), DRAW_DIAMETER)) {
+                    actionType = ActionType.CHANGE_VECTOR;
+                    numPointMoved = 0;
+                    numLineMoved = selectionLines.indexOf(line);
                     return;
                 }
 
-            }
-
-            if (isInCircle(p, fakeStart, DRAW_DIAMETER)) {
-                actionType = ActionType.CHANGE_VECTOR;
-                numPointMoved = 0;
-                return;
-            }
-
-            if (isInCircle(p, fakeEnd, DRAW_DIAMETER)) {
-                actionType = ActionType.CHANGE_VECTOR;
-                numPointMoved = 1;
-            }
-        } else {
-            for (int i = 0; i < selectedPoints.size(); ++i) {
-                if (isInCircle(p, selectedPoints.get(i), DRAW_DIAMETER)) {
-                    actionType = ActionType.DELETE_POINT;
-                    numPointMoved = i;
+                if (isInCircle(p, line.getFakeEnd(), DRAW_DIAMETER)) {
+                    actionType = ActionType.CHANGE_VECTOR;
+                    numPointMoved = 1;
+                    numLineMoved = selectionLines.indexOf(line);
                     return;
                 }
-
+            } else {
+                for (int i = 0; i < line.getPoints().size(); ++i) {
+                    if (isInCircle(p, line.get(i), DRAW_DIAMETER)) {
+                        actionType = ActionType.DELETE_POINT;
+                        numPointMoved = i;
+                        numLineMoved = selectionLines.indexOf(line);
+                        return;
+                    }
+                }
             }
         }
     }
 
     private void drawJPanelMouseReleased(MouseEvent event) {
         final PointFloat p = new PointFloat(event.getPoint());
+        if (numLineMoved == -1) {
+            return;
+        }
+        final UserSelectionLine line = selectionLines.get(numLineMoved);
         if (!event.isMetaDown()) {
             switch (actionType) {
                 case MOVE_POINT:
-                    if (numPointMoved == 0) {
-                        fakeStart = p.add(startTangent);
-                    }
-                    if (numPointMoved == selectedPoints.size() - 1) {
-                        fakeStart = p.add(endTangent);
-                    }
-                    selectedPoints.set(numPointMoved, p);
+                    line.set(numPointMoved, p);
                     actionType = ActionType.NO_ACTION;
                     break;
                 case CHANGE_VECTOR:
                     if (numPointMoved == 0) {
-                        fakeStart = p;
-                        startTangent = fakeStart.sub(selectedPoints.get(0));
+                        line.setStartTangent(p.sub(line.getFirstPoint()));
                     }
                     if (numPointMoved == 1) {
-                        fakeEnd = p;
-                        endTangent = fakeEnd.sub(selectedPoints.get(selectedPoints.size() - 1));
+                        line.setEndTangent(p.sub(line.getLastPoint()));
                     }
                     actionType = ActionType.NO_ACTION;
                     break;
                 default:
-                    selectedPoints.add(p);
-                    fakeEnd = p.add(endTangent);
+                    line.add(p);
                     break;
             }
 
         } else {
             switch (actionType) {
                 case DELETE_POINT:
-                    if (selectedPoints.size() == 2) {
+                    if (line.getPoints().size() <= MIN_POINTS_IN_LINE) {
                         break;
                     }
-                    if (numPointMoved == 0) {
-                        fakeStart = selectedPoints.get(1).add(startTangent);
-                    }
-                    if (numPointMoved == selectedPoints.size() - 1) {
-                        fakeEnd = selectedPoints.get(selectedPoints.size() - 2).add(endTangent);
-                    }
-                    selectedPoints.remove(numPointMoved);
+                    line.getPoints().remove(numPointMoved);
                     actionType = ActionType.NO_ACTION;
                     break;
                 default:
@@ -156,22 +147,24 @@ public class PaintArea extends JPanel {
         super.paintComponent(g);
         g.setColor(drawColor);
 
-        for (PointFloat p : selectedPoints) {
-            g.drawOval((int) (p.x - drawDiameter / 2), (int) (p.y - drawDiameter / 2), drawDiameter, drawDiameter);
-        }
-
-        if (selectedPoints.size() > 1) {
-            List<PointFloat> line = new HermiteSpline(selectedPoints, startTangent.neg(), endTangent).getSpline(10);
-            for (int i = 0; i < line.size() - 1; ++i) {
-                g.drawLine((int) line.get(i).x, (int) line.get(i).y, (int) line.get(i + 1).x, (int) line.get(i + 1).y);
+        for (UserSelectionLine line : selectionLines) {
+            for (PointFloat p : line.getPoints()) {
+                g.drawOval((int) (p.x - drawDiameter / 2), (int) (p.y - drawDiameter / 2), drawDiameter, drawDiameter);
             }
 
+            if (line.size() >= MIN_POINTS_IN_LINE) {
+                final List<PointFloat> spline = new HermiteSpline(line.getPoints(), line.getStartTangent().neg(), line.getEndTangent()).getSpline(POINTS_PER_SPLINE);
+                for (int i = 0; i < spline.size() - 1; ++i) {
+                    g.drawLine((int) spline.get(i).x, (int) spline.get(i).y, (int) spline.get(i + 1).x, (int) spline.get(i + 1).y);
+                }
+
+            }
+            g.setColor(Color.green);
+            g.drawOval((int) line.getFakeStart().x - drawDiameter / 2, (int) line.getFakeStart().y - drawDiameter / 2, drawDiameter, drawDiameter);
+            g.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);
+            g.drawOval((int) line.getFakeEnd().x - drawDiameter / 2, (int) line.getFakeEnd().y - drawDiameter / 2, drawDiameter, drawDiameter);
+            g.drawLine((int) line.getLastPoint().x, (int) line.getLastPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
         }
-        g.setColor(Color.green);
-        g.drawOval((int) fakeStart.x - drawDiameter / 2, (int) fakeStart.y - drawDiameter / 2, drawDiameter, drawDiameter);
-        g.drawLine((int) selectedPoints.get(0).x, (int) selectedPoints.get(0).y, (int) fakeStart.x, (int) fakeStart.y);
-        g.drawOval((int) fakeEnd.x - drawDiameter / 2, (int) fakeEnd.y - drawDiameter / 2, drawDiameter, drawDiameter);
-        g.drawLine((int) selectedPoints.get(selectedPoints.size() - 1).x, (int) selectedPoints.get(selectedPoints.size() - 1).y, (int) fakeEnd.x, (int) fakeEnd.y);
 
     } // end method paintComponent
 

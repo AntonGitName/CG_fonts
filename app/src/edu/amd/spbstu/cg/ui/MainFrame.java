@@ -112,7 +112,8 @@ public class MainFrame extends JFrame {
         final JMenuItem addLineItem = new JMenuItem(MENU_ITEM_ADD);
         final JMenuItem removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
         final JMenuItem setVectorLineItem = new JMenuItem(MENU_ITEM_SET_VECTOR);
-
+        addLineItem.addActionListener(new OnAddLineListener());
+        removeLineItem.addActionListener(new OnRemoveLineListener());
         lineMenu.add(addLineItem);
         lineMenu.add(removeLineItem);
         lineMenu.add(lineSubMenu);
@@ -174,6 +175,20 @@ public class MainFrame extends JFrame {
                     frame.dispatchEvent(windowClosing);
                 }
             }
+        }
+    }
+
+    private final class OnAddLineListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.addLine();
+        }
+    }
+
+    private class OnRemoveLineListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.removeLine();
         }
     }
 }

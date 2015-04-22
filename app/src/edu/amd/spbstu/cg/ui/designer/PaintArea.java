@@ -15,7 +15,9 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author iAnton
@@ -31,12 +33,14 @@ public class PaintArea extends JPanel {
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
+    private Set<Color> colorSet = new HashSet<Color>();
 
     public PaintArea() {
+        initColors();
         selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
 
-        selectionLines.add(activeLine = new UserSelectionLine());
+        selectionLines.add(activeLine = new UserSelectionLine(Color.RED));
 
         final MouseListener mouseListener = new MouseListener();
         addMouseListener(mouseListener);
@@ -49,6 +53,15 @@ public class PaintArea extends JPanel {
             e.printStackTrace();
         }
         texturePaint = new TexturePaint(imagePattern, new Rectangle(60, 60));
+    }
+
+    private void initColors() {
+        colorSet.add(Color.blue);
+        colorSet.add(Color.cyan);
+        colorSet.add(Color.green);
+        colorSet.add(Color.orange);
+        colorSet.add(Color.pink);
+        colorSet.add(Color.darkGray);
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -71,17 +84,19 @@ public class PaintArea extends JPanel {
         return result;
     }
 
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         final Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        final Path2D.Float path = new Path2D.Float();
+
         final List<Shape> shapes = new ArrayList<>(selectionLines.size());
 
 
         for (UserSelectionLine line : selectionLines) {
+            final Path2D.Float path = new Path2D.Float();
             g2.setPaint(texturePaint);
 
             path.moveTo(line.getFirstPoint().x, line.getFirstPoint().y);
@@ -103,7 +118,7 @@ public class PaintArea extends JPanel {
         g2.fill(getResultingArea(shapes));
 
         for (UserSelectionLine line : selectionLines) {
-            g2.setColor(Color.red);
+            g2.setColor(line.getColor());
             for (PointFloat p : line.getPoints()) {
                 g2.fillOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
             }
@@ -116,6 +131,26 @@ public class PaintArea extends JPanel {
         }
 
     }
+
+
+    public void addLine() {
+        if (selectionLines.size() < 7) {
+            Color col = (Color) colorSet.toArray()[colorSet.size() - 1];
+            selectionLines.add(activeLine = new UserSelectionLine(col));
+            colorSet.remove(col);
+            repaint();
+        }
+    }
+
+    public void removeLine() {
+        if (selectionLines.size() > 1) {
+            selectionLines.remove(activeLine);
+            activeLine = selectionLines.get(selectionLines.size() - 1);
+            repaint();
+        }
+    }
+
+
 
     private enum ActionType {
         MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT

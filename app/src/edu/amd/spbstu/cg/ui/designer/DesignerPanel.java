@@ -36,11 +36,19 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         add(splitPane);
     }
 
+    public void addLine() {
+        paintArea.addLine();
+    }
+
     @Override
     public void valueChanged(ListSelectionEvent e) {
         final JList list = (JList) e.getSource();
         final int selectedIndex = list.getSelectedIndex();
 
         paintArea.setActiveLine(selectedIndex);
+    }
+
+    public void removeLine() {
+        paintArea.removeLine();
     }
 }

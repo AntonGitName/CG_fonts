@@ -1,7 +1,9 @@
 package edu.amd.spbstu.cg.splines;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author iAnton
@@ -14,8 +16,10 @@ public class UserSelectionLine {
     private final List<PointFloat> points;
     private PointFloat startTangent;
     private PointFloat endTangent;
+    private Color color;
 
-    public UserSelectionLine() {
+
+    public UserSelectionLine(Color lineColor) {
         startTangent = new PointFloat(-50, 50);
         endTangent = new PointFloat(50, 50);
         points = new ArrayList<>(START_POINT_COUNT);
@@ -23,8 +27,13 @@ public class UserSelectionLine {
         points.add(new PointFloat(300, 300));
         points.add(new PointFloat(300, 100));
         points.add(new PointFloat(100, 100));
+        color = lineColor;
     }
 
+
+    public Color getColor() {
+        return color;
+    }
     private static float dist(PointFloat p1, PointFloat p2) {
         return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
     }

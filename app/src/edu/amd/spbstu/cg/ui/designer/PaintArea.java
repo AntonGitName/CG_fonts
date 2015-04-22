@@ -22,6 +22,7 @@ public class PaintArea extends JPanel {
     private static final int POINTS_PER_SPLINE = 10;
 
     private final List<UserSelectionLine> selectionLines;
+    private final MouseListener mouseListener = new MouseListener();
     private ActionType actionType;
     private int numPointMoved = -1;
     private int selectedLine;
@@ -33,6 +34,7 @@ public class PaintArea extends JPanel {
         selectionLines.add(new UserSelectionLine());
         selectedLine = 0;
 
+<<<<<<< HEAD
         addMouseListener(
                 new MouseAdapter() {
                     @Override
@@ -54,6 +56,10 @@ public class PaintArea extends JPanel {
                     }
                 }
         );
+=======
+        addMouseListener(mouseListener);
+        addMouseMotionListener(mouseListener);
+>>>>>>> origin/master
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -68,6 +74,7 @@ public class PaintArea extends JPanel {
         this.selectedLine = selectedLine;
     }
 
+<<<<<<< HEAD
 
     private void RebuildLine(PointFloat p, UserSelectionLine line) {
 
@@ -174,6 +181,8 @@ public class PaintArea extends JPanel {
 
     }
 
+=======
+>>>>>>> origin/master
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.setColor(Color.RED);
@@ -202,6 +211,113 @@ public class PaintArea extends JPanel {
 
     private enum ActionType {
         MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT
+    }
+
+    private final class MouseListener extends MouseAdapter {
+        @Override
+        public void mouseReleased(MouseEvent event) {
+            final PointFloat p = new PointFloat(event.getPoint());
+            final UserSelectionLine line = selectionLines.get(selectedLine);
+            if (!event.isMetaDown()) {
+                switch (actionType) {
+                    case MOVE_POINT:
+                        line.set(numPointMoved, p);
+                        actionType = ActionType.NO_ACTION;
+                        break;
+                    case CHANGE_VECTOR:
+                        if (numPointMoved == 0) {
+                            line.setStartTangent(p.sub(line.getFirstPoint()));
+                        }
+                        if (numPointMoved == 1) {
+                            line.setEndTangent(p.sub(line.getFirstPoint()));
+                        }
+                        actionType = ActionType.NO_ACTION;
+                        break;
+                    default:
+                        line.addBestFit(p);
+                        break;
+                }
+
+            } else {
+                switch (actionType) {
+                    case DELETE_POINT:
+                        if (line.getPoints().size() <= MIN_POINTS_IN_LINE) {
+                            break;
+                        }
+                        line.getPoints().remove(numPointMoved);
+                        actionType = ActionType.NO_ACTION;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            repaint();
+        }
+
+        @Override
+        public void mousePressed(MouseEvent event) {
+            PointFloat p = new PointFloat(event.getPoint());
+            final UserSelectionLine line = selectionLines.get(selectedLine);
+            if (!event.isMetaDown()) {
+                for (int i = 0; i < line.getPoints().size(); ++i) {
+                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
+                        actionType = ActionType.MOVE_POINT;
+                        numPointMoved = i;
+                        selectedLine = selectionLines.indexOf(line);
+                        return;
+                    }
+
+                }
+
+                if (isInCircle(p, line.getFakeStart(), POINT_DIAMETER)) {
+                    actionType = ActionType.CHANGE_VECTOR;
+                    numPointMoved = 0;
+                    selectedLine = selectionLines.indexOf(line);
+                    return;
+                }
+
+                if (isInCircle(p, line.getFakeEnd(), POINT_DIAMETER)) {
+                    actionType = ActionType.CHANGE_VECTOR;
+                    numPointMoved = 1;
+                    selectedLine = selectionLines.indexOf(line);
+                }
+            } else {
+                for (int i = 0; i < line.getPoints().size(); ++i) {
+                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
+                        actionType = ActionType.DELETE_POINT;
+                        numPointMoved = i;
+                        selectedLine = selectionLines.indexOf(line);
+                        return;
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            final PointFloat p = new PointFloat(e.getPoint());
+
+            final UserSelectionLine line = selectionLines.get(selectedLine);
+            if (!e.isMetaDown()) {
+                switch (actionType) {
+                    case MOVE_POINT:
+                        line.set(numPointMoved, p);
+                        break;
+                    case CHANGE_VECTOR:
+                        if (numPointMoved == 0) {
+                            line.setStartTangent(p.sub(line.getFirstPoint()));
+                        }
+                        if (numPointMoved == 1) {
+                            line.setEndTangent(p.sub(line.getFirstPoint()));
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+            }
+            repaint();
+        }
     }
 
 }

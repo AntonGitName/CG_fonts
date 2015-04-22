@@ -4,6 +4,7 @@ import edu.amd.spbstu.cg.splines.HermiteSpline;
 import edu.amd.spbstu.cg.splines.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
+import javax.sound.sampled.ReverbType;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -45,6 +46,14 @@ public class PaintArea extends JPanel {
                     }
                 }
         );
+        addMouseMotionListener(
+                new MouseAdapter() {
+                    @Override
+                    public void mouseDragged(MouseEvent e) {
+                        drawJPanelMouseDragged(e);
+                    }
+                }
+        );
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -57,6 +66,40 @@ public class PaintArea extends JPanel {
 
     public void setSelectedLine(int selectedLine) {
         this.selectedLine = selectedLine;
+    }
+
+
+    private void RebuildLine(PointFloat p, UserSelectionLine line) {
+
+        switch (actionType) {
+            case MOVE_POINT:
+                line.set(numPointMoved, p);
+                break;
+            case CHANGE_VECTOR:
+                if (numPointMoved == 0) {
+                    line.setStartTangent(p.sub(line.getFirstPoint()));
+                }
+                if (numPointMoved == 1) {
+                    line.setEndTangent(p.sub(line.getFirstPoint()));
+                }
+                break;
+            default:
+                break;
+        }
+    }
+
+
+    private void drawJPanelMouseDragged(MouseEvent event) {
+        final PointFloat p = new PointFloat(event.getPoint());
+        final UserSelectionLine line = selectionLines.get(selectedLine);
+        if (selectedLine == -1) {
+            return;
+        }
+
+        if (!event.isMetaDown()) {
+            RebuildLine(p, line);
+        }
+        repaint();
     }
 
     private void drawJPanelMousePressed(MouseEvent event) {
@@ -105,21 +148,12 @@ public class PaintArea extends JPanel {
         final UserSelectionLine line = selectionLines.get(selectedLine);
         if (!event.isMetaDown()) {
             switch (actionType) {
-                case MOVE_POINT:
-                    line.set(numPointMoved, p);
-                    actionType = ActionType.NO_ACTION;
-                    break;
-                case CHANGE_VECTOR:
-                    if (numPointMoved == 0) {
-                        line.setStartTangent(p.sub(line.getFirstPoint()));
-                    }
-                    if (numPointMoved == 1) {
-                        line.setEndTangent(p.sub(line.getLastPoint()));
-                    }
-                    actionType = ActionType.NO_ACTION;
+                case NO_ACTION:
+                    line.add(p);
                     break;
                 default:
-                    line.add(p);
+                    RebuildLine(p, line);
+                    actionType = ActionType.NO_ACTION;
                     break;
             }
 

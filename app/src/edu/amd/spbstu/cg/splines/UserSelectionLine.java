@@ -25,6 +25,26 @@ public class UserSelectionLine {
         points.add(new PointFloat(100, 100));
     }
 
+    private static float dist(PointFloat p1, PointFloat p2) {
+        return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
+    }
+
+    private float dist(int i, PointFloat point) {
+        final int n = size();
+        return dist(points.get(i % n), point) + dist(points.get((i + 1) % n), point);
+    }
+
+    public void addBestFit(PointFloat point) {
+        final int n = size();
+        int bestIndex = 0;
+        for (int i = 0; i < n; ++i) {
+            if (dist(i, point) < dist(bestIndex, point)) {
+                bestIndex = i;
+            }
+        }
+        points.add(bestIndex + 1, point);
+    }
+
     public int size() {
         return points.size();
     }

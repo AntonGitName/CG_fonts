@@ -100,7 +100,7 @@ public class PaintArea extends JPanel {
                         actionType = ActionType.NO_ACTION;
                         break;
                     default:
-                        line.add(p);
+                        line.addBestFit(p);
                         break;
                 }
 

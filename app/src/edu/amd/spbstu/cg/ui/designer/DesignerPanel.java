@@ -7,7 +7,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author iAnton
@@ -21,13 +23,20 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     private static final String REMOVE_ICON = "res/remove.png";
     private static final String ADD_ICON = "res/add.png";
     private static final double LEFT_PANEL_DIVIDER = 0.9;
+    private static final Map<Color, String> ALL_COLORS_MAP;
     private static Color[] ALL_COLORS = {Color.blue, Color.cyan, Color.green, Color.orange, Color.pink, Color.darkGray};
     private static String[] COLOR_NAMES = {"Blue", "Cyan", "Green", "Orange", "Pink", "Gray"};
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
     private final JList<String> linelist;
     private final PaintArea paintArea;
-    private final Map<String, Color> availableColorsMap;
-    private final Map<Integer, Map.Entry<String, Color>> usedColors = new HashMap<>();
+    private final Set<Color> availableColors;
+
+    static {
+        ALL_COLORS_MAP = new HashMap<>();
+        for (int i = 0; i < ALL_COLORS.length; ++i) {
+            ALL_COLORS_MAP.put(ALL_COLORS[i], COLOR_NAMES[i]);
+        }
+    }
 
 
     public DesignerPanel() {
@@ -72,22 +81,18 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         leftPanel.setResizeWeight(LEFT_PANEL_DIVIDER);
         leftPanel.setEnabled(false);
 
-        availableColorsMap = new HashMap<>();
-        for (int i = 0; i < ALL_COLORS.length; ++i) {
-            availableColorsMap.put(COLOR_NAMES[i], ALL_COLORS[i]);
-        }
 
+        availableColors = new HashSet<>(ALL_COLORS_MAP.keySet());
         addLine();
         linelist.setSelectedIndex(0);
     }
 
     public void addLine() {
-        if (!availableColorsMap.isEmpty()) {
-            final Map.Entry<String, Color> colorEntry = availableColorsMap.entrySet().iterator().next();
-            final int i = paintArea.addLine(colorEntry.getValue());
-            availableColorsMap.remove(colorEntry.getKey());
-            usedColors.put(i, colorEntry);
-            lineListModel.add(lineListModel.size(), "Curve " + colorEntry.getKey());
+        if (!availableColors.isEmpty()) {
+            final Color color = availableColors.iterator().next();
+            paintArea.addLine(color);
+            availableColors.remove(color);
+            lineListModel.add(lineListModel.size(), "Curve " + ALL_COLORS_MAP.get(color));
         }
     }
 
@@ -103,9 +108,8 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     public void removeLine() {
         if (lineListModel.size() > 1) {
             final int x = linelist.getSelectedIndex();
-            final Map.Entry<String, Color> colorEntry = usedColors.get(x);
-            paintArea.removeLine(x);
-            availableColorsMap.put(colorEntry.getKey(), colorEntry.getValue());
+            final Color color = paintArea.removeLine(x);
+            availableColors.add(color);
             lineListModel.removeElementAt(x);
             linelist.setSelectedIndex(0);
         }

@@ -119,24 +119,20 @@ public class PaintArea extends JPanel {
     }
 
 
-    public int addLine(Color color) {
+    public void addLine(Color color) {
         if (selectionLines.size() < 7) {
             selectionLines.add(activeLine = new UserSelectionLine(color));
             repaint();
-            return selectionLines.size() - 1;
-        }
-        return -1;
-    }
-
-    public void removeLine(int x) {
-        if (selectionLines.size() > 1) {
-            activeLine = selectionLines.get(0);
-            selectionLines.remove(x);
-            activeLine = selectionLines.get(selectionLines.size() - 1);
-            repaint();
         }
     }
 
+    public Color removeLine(int x) {
+        final Color color = activeLine.getColor();
+        activeLine = selectionLines.get(0);
+        selectionLines.remove(x);
+        repaint();
+        return color;
+    }
 
 
     private enum ActionType {

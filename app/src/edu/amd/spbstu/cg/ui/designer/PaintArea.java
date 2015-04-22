@@ -5,6 +5,7 @@ import edu.amd.spbstu.cg.splines.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.ReverbType;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -32,6 +33,7 @@ public class PaintArea extends JPanel {
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
+    private int selectedLine;
 
     public PaintArea() {
         selectionLines = new ArrayList<>();
@@ -61,6 +63,26 @@ public class PaintArea extends JPanel {
 
     public void setActiveLine(int activeLine) {
         this.activeLine = selectionLines.get(activeLine);
+    }
+
+
+    private void RebuildLine(PointFloat p, UserSelectionLine line) {
+
+        switch (actionType) {
+            case MOVE_POINT:
+                line.set(numPointMoved, p);
+                break;
+            case CHANGE_VECTOR:
+                if (numPointMoved == 0) {
+                    line.setStartTangent(p.sub(line.getFirstPoint()));
+                }
+                if (numPointMoved == 1) {
+                    line.setEndTangent(p.sub(line.getFirstPoint()));
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     public void paintComponent(Graphics g) {

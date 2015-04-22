@@ -159,8 +159,9 @@ public class PaintArea extends JPanel {
             g.setColor(Color.green);
             g.drawOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);
+            g.setColor(Color.blue);
             g.drawOval((int) line.getFakeEnd().x - POINT_DIAMETER / 2, (int) line.getFakeEnd().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
-            g.drawLine((int) line.getLastPoint().x, (int) line.getLastPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
+            g.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
         }
 
     } // end method paintComponent

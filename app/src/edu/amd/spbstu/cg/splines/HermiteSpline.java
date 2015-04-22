@@ -16,15 +16,18 @@ public class HermiteSpline {
     private final float[] tangentsY;
 
     public HermiteSpline(List<PointFloat> points, PointFloat startTangent, PointFloat endTangent) {
-        n = points.size();
+        n = points.size() + 1;
         pointsX = new float[n];
         pointsY = new float[n];
         tangentsX = new float[n];
         tangentsY = new float[n];
-        for (int i = 0; i < n; ++i) {
+        for (int i = 0; i < n - 1; ++i) {
             pointsX[i] = points.get(i).x;
             pointsY[i] = points.get(i).y;
         }
+
+        pointsX[n - 1] = pointsX[0];
+        pointsY[n - 1] = pointsY[0];
 
         calcTangents(tangentsX, pointsX, startTangent.x, endTangent.x);
         calcTangents(tangentsY, pointsY, startTangent.y, endTangent.y);

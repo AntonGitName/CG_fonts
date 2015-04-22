@@ -16,7 +16,7 @@ public class UserSelectionLine {
     private PointFloat endTangent;
 
     public UserSelectionLine() {
-        startTangent = new PointFloat(50, 50);
+        startTangent = new PointFloat(-50, 50);
         endTangent = new PointFloat(50, 50);
         points = new ArrayList<>(START_POINT_COUNT);
         points.add(new PointFloat(100, 300));
@@ -46,11 +46,11 @@ public class UserSelectionLine {
     }
 
     public PointFloat getFakeStart() {
-        return points.get(0).add(startTangent);
+        return getFirstPoint().add(startTangent);
     }
 
     public PointFloat getFakeEnd() {
-        return points.get(points.size() - 1).add(endTangent);
+        return getFirstPoint().add(endTangent);
     }
 
     public List<PointFloat> getPoints() {

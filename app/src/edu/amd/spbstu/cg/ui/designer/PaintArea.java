@@ -24,10 +24,8 @@ public class PaintArea extends JPanel {
     private static final int POINT_DIAMETER = 14;
     private static final int MIN_POINTS_IN_LINE = 2;
     private static final int POINTS_PER_SPLINE = 10;
-    private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.jpg";
-
+    private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
     private final List<UserSelectionLine> selectionLines;
-    private final MouseListener mouseListener = new MouseListener();
     private final Paint texturePaint;
     private UserSelectionLine activeLine;
     private ActionType actionType;
@@ -39,6 +37,7 @@ public class PaintArea extends JPanel {
 
         selectionLines.add(activeLine = new UserSelectionLine());
 
+        final MouseListener mouseListener = new MouseListener();
         addMouseListener(mouseListener);
         addMouseMotionListener(mouseListener);
 
@@ -48,7 +47,7 @@ public class PaintArea extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        texturePaint = new TexturePaint(imagePattern, new Rectangle(200, 200));
+        texturePaint = new TexturePaint(imagePattern, new Rectangle(60, 60));
     }
 
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
@@ -69,14 +68,14 @@ public class PaintArea extends JPanel {
         final Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        g2.setPaint(texturePaint);
 
         final Path2D.Float path = new Path2D.Float();
 
         for (UserSelectionLine line : selectionLines) {
-            for (PointFloat p : line.getPoints()) {
-                g2.drawOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
-            }
+            final float thickness = 5;
+            final Stroke oldStroke = g2.getStroke();
+            g2.setStroke(new BasicStroke(thickness));
+            g2.setPaint(texturePaint);
 
             path.moveTo(line.getFirstPoint().x, line.getFirstPoint().y);
 
@@ -86,15 +85,23 @@ public class PaintArea extends JPanel {
                     path.lineTo(spline.get(i).x, spline.get(i).y);
                 }
             }
-
             path.closePath();
+
             g2.fill(path);
+            g2.setColor(Color.BLACK);
+            g2.draw(path);
+            g2.setStroke(oldStroke);
+
+            g2.setColor(Color.red);
+            for (PointFloat p : line.getPoints()) {
+                g2.fillOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
+            }
 
             g2.setColor(Color.green);
-            g2.drawOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
+            g2.fillOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g2.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);
             g2.setColor(Color.blue);
-            g2.drawOval((int) line.getFakeEnd().x - POINT_DIAMETER / 2, (int) line.getFakeEnd().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
+            g2.fillOval((int) line.getFakeEnd().x - POINT_DIAMETER / 2, (int) line.getFakeEnd().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g2.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
         }
 

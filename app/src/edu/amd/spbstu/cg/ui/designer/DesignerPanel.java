@@ -39,7 +39,8 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
         final JList list = (JList) e.getSource();
-        int selectedIndex = list.getSelectedIndex();
-        // TODO: handle line selection
+        final int selectedIndex = list.getSelectedIndex();
+
+        paintArea.setActiveLine(selectedIndex);
     }
 }

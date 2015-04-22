@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -62,19 +63,25 @@ public class PaintArea extends JPanel {
         this.activeLine = selectionLines.get(activeLine);
     }
 
+    private Area getResultingArea(List<Shape> shapes) {
+        final Area result = new Area();
+        for (Shape shape : shapes) {
+            result.exclusiveOr(new Area(shape));
+        }
+        return result;
+    }
+
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
         final Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-
         final Path2D.Float path = new Path2D.Float();
+        final List<Shape> shapes = new ArrayList<>(selectionLines.size());
+
 
         for (UserSelectionLine line : selectionLines) {
-            final float thickness = 5;
-            final Stroke oldStroke = g2.getStroke();
-            g2.setStroke(new BasicStroke(thickness));
             g2.setPaint(texturePaint);
 
             path.moveTo(line.getFirstPoint().x, line.getFirstPoint().y);
@@ -87,16 +94,19 @@ public class PaintArea extends JPanel {
             }
             path.closePath();
 
-            g2.fill(path);
+            shapes.add(path);
             g2.setColor(Color.BLACK);
             g2.draw(path);
-            g2.setStroke(oldStroke);
+        }
 
+        g2.setPaint(texturePaint);
+        g2.fill(getResultingArea(shapes));
+
+        for (UserSelectionLine line : selectionLines) {
             g2.setColor(Color.red);
             for (PointFloat p : line.getPoints()) {
                 g2.fillOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
             }
-
             g2.setColor(Color.green);
             g2.fillOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g2.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);

@@ -16,20 +16,16 @@ import java.util.List;
  * @since 15/03/15
  */
 public class PaintArea extends JPanel {
-    private static final Color DRAW_COLOR = Color.RED;
-    private static final int DRAW_DIAMETER = 14;
+    private static final int POINT_DIAMETER = 14;
     private static final int MIN_POINTS_IN_LINE = 2;
     private static final int POINTS_PER_SPLINE = 10;
-    private final Color drawColor;
-    private final int drawDiameter;
+
     private final List<UserSelectionLine> selectionLines;
     private ActionType actionType;
     private int numPointMoved = -1;
     private int numLineMoved = -1;
 
     public PaintArea() {
-        drawColor = DRAW_COLOR;
-        drawDiameter = DRAW_DIAMETER;
         selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
 
@@ -65,7 +61,7 @@ public class PaintArea extends JPanel {
 
             if (!event.isMetaDown()) {
                 for (int i = 0; i < line.getPoints().size(); ++i) {
-                    if (isInCircle(p, line.get(i), DRAW_DIAMETER)) {
+                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
                         actionType = ActionType.MOVE_POINT;
                         numPointMoved = i;
                         numLineMoved = selectionLines.indexOf(line);
@@ -74,14 +70,14 @@ public class PaintArea extends JPanel {
 
                 }
 
-                if (isInCircle(p, line.getFakeStart(), DRAW_DIAMETER)) {
+                if (isInCircle(p, line.getFakeStart(), POINT_DIAMETER)) {
                     actionType = ActionType.CHANGE_VECTOR;
                     numPointMoved = 0;
                     numLineMoved = selectionLines.indexOf(line);
                     return;
                 }
 
-                if (isInCircle(p, line.getFakeEnd(), DRAW_DIAMETER)) {
+                if (isInCircle(p, line.getFakeEnd(), POINT_DIAMETER)) {
                     actionType = ActionType.CHANGE_VECTOR;
                     numPointMoved = 1;
                     numLineMoved = selectionLines.indexOf(line);
@@ -89,7 +85,7 @@ public class PaintArea extends JPanel {
                 }
             } else {
                 for (int i = 0; i < line.getPoints().size(); ++i) {
-                    if (isInCircle(p, line.get(i), DRAW_DIAMETER)) {
+                    if (isInCircle(p, line.get(i), POINT_DIAMETER)) {
                         actionType = ActionType.DELETE_POINT;
                         numPointMoved = i;
                         numLineMoved = selectionLines.indexOf(line);
@@ -145,11 +141,11 @@ public class PaintArea extends JPanel {
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.setColor(drawColor);
+        g.setColor(Color.RED);
 
         for (UserSelectionLine line : selectionLines) {
             for (PointFloat p : line.getPoints()) {
-                g.drawOval((int) (p.x - drawDiameter / 2), (int) (p.y - drawDiameter / 2), drawDiameter, drawDiameter);
+                g.drawOval((int) (p.x - POINT_DIAMETER / 2), (int) (p.y - POINT_DIAMETER / 2), POINT_DIAMETER, POINT_DIAMETER);
             }
 
             if (line.size() >= MIN_POINTS_IN_LINE) {
@@ -160,9 +156,9 @@ public class PaintArea extends JPanel {
 
             }
             g.setColor(Color.green);
-            g.drawOval((int) line.getFakeStart().x - drawDiameter / 2, (int) line.getFakeStart().y - drawDiameter / 2, drawDiameter, drawDiameter);
+            g.drawOval((int) line.getFakeStart().x - POINT_DIAMETER / 2, (int) line.getFakeStart().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g.drawLine((int) line.getFirstPoint().x, (int) line.getFirstPoint().y, (int) line.getFakeStart().x, (int) line.getFakeStart().y);
-            g.drawOval((int) line.getFakeEnd().x - drawDiameter / 2, (int) line.getFakeEnd().y - drawDiameter / 2, drawDiameter, drawDiameter);
+            g.drawOval((int) line.getFakeEnd().x - POINT_DIAMETER / 2, (int) line.getFakeEnd().y - POINT_DIAMETER / 2, POINT_DIAMETER, POINT_DIAMETER);
             g.drawLine((int) line.getLastPoint().x, (int) line.getLastPoint().y, (int) line.getFakeEnd().x, (int) line.getFakeEnd().y);
         }
 

@@ -77,7 +77,7 @@ public class HermiteSpline {
             for (int j = 1; j < div; ++j) {
                 final float x = hermiteValX(i, j * dt);
                 final float y = hermiteValY(i, j * dt);
-                result.add(new PointFloat((int) x, (int) y));
+                result.add(new PointFloat(x, y));
             }
         }
         addPoint(result, pointsX[n - 1], pointsY[n - 1]);

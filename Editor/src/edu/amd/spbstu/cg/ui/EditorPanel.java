@@ -5,10 +5,7 @@ import edu.amd.spbstu.cg.splines.HermiteSpline;
 import edu.amd.spbstu.cg.splines.LetterFont;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.event.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,22 +17,20 @@ import java.util.Map;
  * @since 23/04/15
  */
 public class EditorPanel extends JPanel implements ListSelectionListener {
-    private Map<String, LetterFont> letterFonts = new HashMap<>();
-    private static final int MAX_TEXT_SIZE = 50;
-    private static final int MIN_TEXT_SIZE = 5;
-    private PaintArea paintArea;
+    private static final int MIN_VALUE = 10;
+    private static final int MAX_VALUE = 48;
+    private final MainFrame mainFrame;
+    private final Map<String, LetterFont> letterFonts = new HashMap<>();
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
     private final JList<String> linelist;
     private final JTextPane textPane;
-    private int textSize;
+    private PaintArea paintArea;
     private ArrayList<String> activeLetters = new ArrayList<>();
+    private SpinnerModel fontSpinnerModel = new SpinnerNumberModel(PaintArea.DEFAULT_FONT_SIZE, MIN_VALUE, MAX_VALUE, 1);
 
-    public Map<String, LetterFont> getLetterFonts() {
-        return letterFonts;
-    }
-
-    public EditorPanel() {
+    public EditorPanel(MainFrame mainFrame) {
         super(new BorderLayout());
+        this.mainFrame = mainFrame;
         linelist = new JList<>(lineListModel);
         linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         linelist.addListSelectionListener(this);
@@ -49,14 +44,30 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         paintArea = new PaintArea(this, letterFonts);
 
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paintArea, paneScrollPane);
-        splitPane.setResizeWeight(0.9d);
+        splitPane.setDividerLocation(0.9);
+        splitPane.setResizeWeight(0.9);
         splitPane.setEnabled(false);
 
-        final JSplitPane resultLayout = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, splitPane);
+        final JPanel fontPanel = new JPanel();
+        fontPanel.add(new JLabel("Font Size"));
+        fontPanel.add(new JSpinner(fontSpinnerModel));
+        fontSpinnerModel.addChangeListener(new FontChangeListener());
+
+        final JSplitPane leftSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScrollPane, fontPanel);
+        leftSplitPane.setDividerLocation(0.9);
+        leftSplitPane.setResizeWeight(0.9);
+        leftSplitPane.setEnabled(false);
+
+        final JSplitPane resultLayout = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftSplitPane, splitPane);
+        resultLayout.setDividerLocation(75);
         resultLayout.setEnabled(false);
 
         add(resultLayout, BorderLayout.CENTER);
-        textSize = 15;
+        paintArea.setFontSize((Integer) fontSpinnerModel.getValue());
+    }
+
+    public Map<String, LetterFont> getLetterFonts() {
+        return letterFonts;
     }
 
     public void addLetter(String letter, List<List<PointFloat>> points, List<PointFloat> startTangent, List<PointFloat> endTangent) {
@@ -71,25 +82,19 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         }
     }
 
-    public void incTextSize() {
-        if (textSize + 5 > MAX_TEXT_SIZE) {
-            textSize = MAX_TEXT_SIZE;
-        } else {
-            textSize += 5;
-        }
-    }
-
-    public void decTextSize() {
-        if (textSize - 5 < MIN_TEXT_SIZE) {
-            textSize = MIN_TEXT_SIZE;
-        } else {
-            textSize -= 5;
-        }
-    }
-
     @Override
     public void valueChanged(ListSelectionEvent e) {
 
+    }
+
+    public void incTextSize() {
+        paintArea.incFontSize();
+        fontSpinnerModel.setValue((int) fontSpinnerModel.getValue() + 1);
+    }
+
+    public void decTextSize() {
+        paintArea.decFontSize();
+        fontSpinnerModel.setValue((int) fontSpinnerModel.getValue() - 1);
     }
 
     private class TextChangedListener implements DocumentListener {
@@ -107,6 +112,15 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         @Override
         public void changedUpdate(DocumentEvent e) {
             paintArea.printText(textPane.getText());
+        }
+    }
+
+    private final class FontChangeListener implements ChangeListener {
+        @Override
+        public void stateChanged(ChangeEvent e) {
+            final int fontSize = (int) fontSpinnerModel.getValue();
+            paintArea.setFontSize(fontSize);
+            mainFrame.updateMenuButtons(fontSize != MIN_VALUE, fontSize != MAX_VALUE);
         }
     }
 }

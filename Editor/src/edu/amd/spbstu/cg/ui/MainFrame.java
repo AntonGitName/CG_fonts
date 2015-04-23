@@ -11,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,14 +36,17 @@ public class MainFrame extends JFrame {
     private static final String MENU_FONT_OPEN = "Open font";
     private static final String MENU_TEXT_INC = "Increase font size";
     private static final String MENU_TEXT_DEC = "Decrease font size";
+    private static final String DEFAULT_FONT_FOLDER = "res/defaultFont";
 
 
     private final EditorPanel editorPanel;
+    private JMenuItem textSizeInc;
+    private JMenuItem textSizeDec;
 
     public MainFrame() {
         super(TITLE);
 
-        add(editorPanel = new EditorPanel());
+        add(editorPanel = new EditorPanel(this));
         createMenu();
         showGUI();
     }
@@ -81,8 +84,8 @@ public class MainFrame extends JFrame {
         final JMenuItem undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
         final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
         final JMenuItem pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
-        final JMenuItem textSizeInc = new JMenuItem(MENU_TEXT_INC);
-        final JMenuItem textSizeDec = new JMenuItem(MENU_TEXT_DEC);
+        textSizeInc = new JMenuItem(MENU_TEXT_INC);
+        textSizeDec = new JMenuItem(MENU_TEXT_DEC);
 
         textSizeInc.addActionListener(new IncFontListener());
         textSizeDec.addActionListener(new DecFontListener());
@@ -97,6 +100,59 @@ public class MainFrame extends JFrame {
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
         setJMenuBar(menuBar);
+
+        loadFont(new File(DEFAULT_FONT_FOLDER));
+    }
+
+    private void loadFont(File selectedFolder) {
+        for (final File fileEntry : selectedFolder.listFiles()) {
+            if (!fileEntry.isDirectory()) {
+                if (checkTypeFile(fileEntry)) {
+
+                    List<String> linesInfo = new ArrayList<>();
+                    try {
+                        linesInfo = Files.readAllLines(Paths.get(fileEntry.toURI()));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    String letter = linesInfo.get(0);
+                    linesInfo.remove(0);
+                    linesInfo.remove(0); // deleting info about bounding box
+                    final int shift = 4;
+
+                    int numLines = Integer.valueOf(linesInfo.get(0));
+                    linesInfo.remove(0);
+                    List<List<PointFloat>> lines = new ArrayList<>();
+                    List<PointFloat> startTangents = new ArrayList<>();
+                    List<PointFloat> endTangents = new ArrayList<>();
+                    for (int i = 0; i < numLines; ++i) {
+                        List<PointFloat> line = new ArrayList<>();
+                        String[] x = linesInfo.get(i * shift).split(" ");
+                        String[] y = linesInfo.get(i * shift + 1).split(" ");
+                        for (int j = 0; j < x.length; ++j) {
+                            line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
+                        }
+                        String[] s = linesInfo.get(i * shift + 2).split(" "); // first tangent
+                        startTangents.add(new PointFloat(Float.valueOf(s[0]) - line.get(0).x, Float.valueOf(s[1]) - line.get(0).y));
+                        s = linesInfo.get(i * shift + 3).split(" "); // first tangent
+                        endTangents.add(new PointFloat(Float.valueOf(s[0]) - line.get(0).x, Float.valueOf(s[1]) - line.get(0).y));
+                        lines.add(line);
+                    }
+                    editorPanel.addLetter(letter, lines, startTangents, endTangents);
+                }
+            }
+        }
+    }
+
+    private boolean checkTypeFile(File fileEntry) {
+        String fileName = fileEntry.getName();
+        String s = fileName.substring(fileName.lastIndexOf('.'), fileName.length());
+        return s.equals(".fnttp");
+    }
+
+    public void updateMenuButtons(boolean canInc, boolean canDec) {
+        textSizeInc.setEnabled(canInc);
+        textSizeDec.setEnabled(canDec);
     }
 
     private final class OnNewListener implements ActionListener {
@@ -145,56 +201,6 @@ public class MainFrame extends JFrame {
             }
         }
     }
-
-    private void loadFont(File selectedFolder) {
-        for (final File fileEntry : selectedFolder.listFiles()) {
-            if (!fileEntry.isDirectory()) {
-                if (checkTypeFile(fileEntry)) {
-
-                    List<String> linesInfo = new ArrayList<>();
-                    try {
-                        linesInfo = Files.readAllLines(Paths.get(fileEntry.toURI()));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    String letter = linesInfo.get(0);
-                    linesInfo.remove(0);
-                    linesInfo.remove(0); // deleting info about bounding box
-                    final int shift = 4;
-
-                    int numLines = Integer.valueOf(linesInfo.get(0));
-                    linesInfo.remove(0);
-                    List<List<PointFloat>> lines = new ArrayList<>();
-                    List<PointFloat> startTangents = new ArrayList<>();
-                    List<PointFloat> endTangents = new ArrayList<>();
-                    for (int i = 0; i < numLines; ++i) {
-                        List<PointFloat> line = new ArrayList<>();
-                        String[] x = linesInfo.get(i * shift).split(" ");
-                        String[] y = linesInfo.get(i * shift + 1).split(" ");
-                        for (int j = 0; j < x.length; ++j) {
-                            line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
-                        }
-                        String[] s = linesInfo.get(i * shift + 2).split(" "); // first tangent
-                        startTangents.add(new PointFloat(Float.valueOf(s[0]) - line.get(0).x, Float.valueOf(s[1]) - line.get(0).y));
-                        s = linesInfo.get(i * shift + 3).split(" "); // first tangent
-                        endTangents.add(new PointFloat(Float.valueOf(s[0]) - line.get(0).x, Float.valueOf(s[1]) - line.get(0).y));
-                        lines.add(line);
-                    }
-                    editorPanel.addLetter(letter, lines, startTangents, endTangents);
-                }
-            }
-        }
-    }
-
-    private boolean checkTypeFile(File fileEntry) {
-        String fileName = fileEntry.getName();
-        String s = fileName.substring(fileName.lastIndexOf('.'), fileName.length());
-        if (s.equals(".fnttp")) {
-            return true;
-        }
-        return false;
-    }
-
 
     private class IncFontListener implements ActionListener {
         @Override

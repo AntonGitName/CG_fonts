@@ -1,5 +1,6 @@
 package edu.amd.spbstu.cg.ui.designer;
 
+import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
 import javax.swing.*;
@@ -141,5 +142,13 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     public List<UserSelectionLine> getLinesInfo() {
 
         return paintArea.getLineInfo();
+    }
+
+    public List<PointFloat> getBoundingBox() {
+        return paintArea.getBoundingBox();
+    }
+
+    public void setbBox(List<PointFloat> bBox) {
+        paintArea.setBoundingBox(bBox);
     }
 }

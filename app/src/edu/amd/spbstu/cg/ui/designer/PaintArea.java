@@ -59,6 +59,10 @@ public class PaintArea extends JPanel {
         texturePaint = new TexturePaint(imagePattern, new Rectangle(60, 60));
     }
 
+    public List<PointFloat> getBoundingBox() {
+        return boundingBox.getPoints();
+    }
+
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
         return isInCircle(p1.x, p1.y, p2.x, p2.y, d / 2);
     }
@@ -161,6 +165,12 @@ public class PaintArea extends JPanel {
     public void setLines(List<UserSelectionLine> lines) {
         selectionLines = lines;
         activeLine = selectionLines.get(0);
+    }
+
+    public void setBoundingBox(List<PointFloat> bBox) {
+        for (int i = 0; i < 4; ++i) {
+            boundingBox.setPoint(bBox.get(i), i);
+        }
     }
 
     private enum ActionType {

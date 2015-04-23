@@ -151,6 +151,9 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            if (!CheckBBox()) {
+                return; /// SHOW MESSAGE
+            }
             Object[] possibilities = alphabet.toArray();
             Frame frame = new Frame();
             String s = (String) JOptionPane.showInputDialog(
@@ -178,8 +181,32 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private boolean CheckBBox() {
+        List<PointFloat> bBox;
+        bBox = designerPanel.getBoundingBox();
+        float leftX = bBox.get(0).x;
+        float topY = bBox.get(0).y;
+        float rightX = bBox.get(2).x;
+        float bottomY = bBox.get(2).y;
+        java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
+        for (UserSelectionLine line : lines) {
+            for (PointFloat p : line.getPoints()) {
+                if (p.x > rightX || p.x < leftX || p.y > bottomY || p.y < topY) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private void saveLetter(String s, PrintWriter writer) {
+
         writer.write(s + "\n"); // first string -- letter
+        List<PointFloat> bBox;
+        bBox = designerPanel.getBoundingBox();
+        float bBoxWidth = bBox.get(1).x - bBox.get(0).x;
+        float bBoxHeight = bBox.get(3).y - bBox.get(0).y;
+        writer.write(bBox.get(0).x + " " + bBox.get(0).y + " " + bBoxWidth + " " + bBoxHeight + "\n");
         java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
         writer.write(lines.size() + "\n"); // second string -- amount of lines
         for (UserSelectionLine line : lines) {
@@ -188,8 +215,8 @@ public class MainFrame extends JFrame {
             List<String> line_x = new ArrayList<>();
             List<String> line_y = new ArrayList<>();
             for (PointFloat p : line.getPoints()) {
-                line_x.add(p.x + "");
-                line_y.add(p.y + "");
+                line_x.add((p.x - bBox.get(0).x) / bBoxWidth + "");
+                line_y.add((p.y - bBox.get(0).y) / bBoxHeight + "");
             }
             for (String str : line_x) {
                 writer.write(str + " "); // x coord of points
@@ -208,12 +235,7 @@ public class MainFrame extends JFrame {
         public void actionPerformed(ActionEvent e) {
             final JFileChooser fileChooser = new JFileChooser();
             if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                try {
-                    loadFont(fileChooser.getSelectedFile());
-                    editorPanel.setText(new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().toURI()))));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                loadFont(fileChooser.getSelectedFile());
             }
         }
     }
@@ -227,8 +249,18 @@ public class MainFrame extends JFrame {
             e.printStackTrace();
         }
         linesInfo.remove(0);
-        int numLines = Integer.valueOf(linesInfo.get(0));
+        List<PointFloat> bBox = new ArrayList<>();
+        String[] bBoxData = linesInfo.get(0).split(" ");
+        float bBoxWidth = Float.valueOf(bBoxData[2]);
+        float bBoxHeight = Float.valueOf(bBoxData[3]);
+        bBox.add(new PointFloat(Float.valueOf(bBoxData[0]), Float.valueOf(bBoxData[1])));
+        bBox.add(new PointFloat(Float.valueOf(bBoxData[0]) + bBoxWidth, Float.valueOf(bBoxData[1])));
+        bBox.add(new PointFloat(Float.valueOf(bBoxData[0]) + bBoxWidth, Float.valueOf(bBoxData[1]) + bBoxHeight));
+        bBox.add(new PointFloat(Float.valueOf(bBoxData[0]), Float.valueOf(bBoxData[1]) + bBoxHeight));
         final int shift = 4;
+        linesInfo.remove(0);
+
+        int numLines = Integer.valueOf(linesInfo.get(0));
         linesInfo.remove(0);
         for (int i = 0; i < numLines; ++i) {
             UserSelectionLine line = new UserSelectionLine();
@@ -239,10 +271,11 @@ public class MainFrame extends JFrame {
             String[] x = linesInfo.get(i * shift + 2).split(" ");
             String[] y = linesInfo.get(i * shift + 3).split(" ");
             for (int j = 0; j < x.length; ++j) {
-                line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
+                line.add(new PointFloat(Float.valueOf(x[j]) * bBoxWidth + bBox.get(0).x, Float.valueOf(y[j]) * bBoxHeight + bBox.get(0).y));
             }
             lines.add(line);
         }
+        designerPanel.setbBox(bBox);
         designerPanel.resetLines(lines);
     }
 

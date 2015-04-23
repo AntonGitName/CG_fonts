@@ -4,7 +4,7 @@
 
 package edu.amd.spbstu.cg.ui;
 
-import edu.amd.spbstu.cg.splines.PointFloat;
+import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 import edu.amd.spbstu.cg.ui.designer.DesignerPanel;
 import edu.amd.spbstu.cg.ui.editor.EditorPanel;

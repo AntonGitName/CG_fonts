@@ -52,7 +52,6 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         splitPane.setResizeWeight(0.9d);
         splitPane.setEnabled(false);
 
-
         final JSplitPane resultLayout = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScrollPane, splitPane);
         resultLayout.setEnabled(false);
 

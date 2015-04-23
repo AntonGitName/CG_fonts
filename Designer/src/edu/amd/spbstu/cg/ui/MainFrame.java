@@ -195,8 +195,6 @@ public class MainFrame extends JFrame {
         java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
         writer.write(lines.size() + "\n"); // second string -- amount of lines
         for (UserSelectionLine line : lines) {
-            writer.write(line.getStartTangent().x + " " + line.getStartTangent().y + "\n"); // first string for each line if start tangent
-            writer.write(line.getEndTangent().x + " " + line.getEndTangent().y + "\n"); // second string for each line if end tangent
             List<String> line_x = new ArrayList<>();
             List<String> line_y = new ArrayList<>();
             for (PointFloat p : line.getPoints()) {
@@ -211,6 +209,8 @@ public class MainFrame extends JFrame {
                 writer.write(str + " "); // y coord of points
             }
             writer.write("\n");
+            writer.write((line.getFakeStart().x - bBox.get(0).x) / bBoxWidth + " " + (line.getFakeStart().y - bBox.get(0).y) / bBoxHeight + "\n"); // first string for each line if start tangent
+            writer.write((line.getFakeEnd().x - bBox.get(0).x) / bBoxWidth + " " + (line.getFakeEnd().y - bBox.get(0).y) / bBoxHeight + "\n"); // second string for each line if end tangent
         }
     }
 
@@ -249,15 +249,16 @@ public class MainFrame extends JFrame {
         linesInfo.remove(0);
         for (int i = 0; i < numLines; ++i) {
             UserSelectionLine line = new UserSelectionLine();
-            String[] s = linesInfo.get(i * shift).split(" "); // first tangent
-            line.setStartTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
-            s = linesInfo.get(i * shift + 1).split(" "); // first tangent
-            line.setEndTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
-            String[] x = linesInfo.get(i * shift + 2).split(" ");
-            String[] y = linesInfo.get(i * shift + 3).split(" ");
+            String[] x = linesInfo.get(i * shift).split(" ");
+            String[] y = linesInfo.get(i * shift + 1).split(" ");
             for (int j = 0; j < x.length; ++j) {
                 line.add(new PointFloat(Float.valueOf(x[j]) * bBoxWidth + bBox.get(0).x, Float.valueOf(y[j]) * bBoxHeight + bBox.get(0).y));
             }
+            String[] s = linesInfo.get(i * shift + 2).split(" "); // first tangent
+
+            line.setStartTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
+            s = linesInfo.get(i * shift + 3).split(" "); // first tangent
+            line.setEndTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
             lines.add(line);
         }
         designerPanel.setbBox(bBox);

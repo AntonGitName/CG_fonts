@@ -29,13 +29,9 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_OPEN = "Open";
     private static final String MENU_ITEM_SAVE = "Save";
     private static final String MENU_ITEM_EXIT = "Exit";
-    private static final String MENU_ITEM_UNDO = "Undo";
-    private static final String MENU_ITEM_REDO = "Redo";
-    private static final String MENU_ITEM_COPY = "Copy";
-    private static final String MENU_ITEM_PASTE = "Paste";
     private static final String MENU_FONT_OPEN = "Open font";
-    private static final String MENU_TEXT_INC = "Increase font size";
-    private static final String MENU_TEXT_DEC = "Decrease font size";
+    private static final String MENU_TEXT_INC = "Increase size";
+    private static final String MENU_TEXT_DEC = "Decrease size";
     private static final String DEFAULT_FONT_FOLDER = "res/defaultFont";
 
 
@@ -80,20 +76,12 @@ public class MainFrame extends JFrame {
         fileMenu.add(openFileMenuItem);
         fileMenu.add(exitFileMenuItem);
 
-        final JMenuItem redoEditItem = new JMenuItem(MENU_ITEM_REDO);
-        final JMenuItem undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
-        final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
-        final JMenuItem pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
         textSizeInc = new JMenuItem(MENU_TEXT_INC);
         textSizeDec = new JMenuItem(MENU_TEXT_DEC);
 
         textSizeInc.addActionListener(new IncFontListener());
         textSizeDec.addActionListener(new DecFontListener());
 
-        editMenu.add(redoEditItem);
-        editMenu.add(undoEditItem);
-        editMenu.add(copyEditItem);
-        editMenu.add(pasteEditItem);
         editMenu.add(textSizeInc);
         editMenu.add(textSizeDec);
 
@@ -159,7 +147,7 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-
+            editorPanel.reset();
         }
     }
 
@@ -167,6 +155,8 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            String text = editorPanel.getText();
+
         }
     }
 

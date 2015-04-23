@@ -3,7 +3,6 @@ package edu.amd.spbstu.cg.splines;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author iAnton
@@ -30,6 +29,9 @@ public class UserSelectionLine {
         color = lineColor;
     }
 
+    public UserSelectionLine() {
+        points = new ArrayList<>();
+    }
 
     public Color getColor() {
         return color;
@@ -98,15 +100,15 @@ public class UserSelectionLine {
         return points.get(0);
     }
 
-    public PointFloat getLastPoint() {
-        return points.get(points.size() - 1);
-    }
-
     public PointFloat getEndTangent() {
         return endTangent;
     }
 
     public void setEndTangent(PointFloat endTangent) {
         this.endTangent = endTangent;
+    }
+
+    public void setColor(Color newColor) {
+        color = newColor;
     }
 }

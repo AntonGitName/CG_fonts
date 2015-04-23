@@ -4,6 +4,8 @@
 
 package edu.amd.spbstu.cg.ui;
 
+import edu.amd.spbstu.cg.splines.PointFloat;
+import edu.amd.spbstu.cg.splines.UserSelectionLine;
 import edu.amd.spbstu.cg.ui.designer.DesignerPanel;
 import edu.amd.spbstu.cg.ui.editor.EditorPanel;
 
@@ -12,11 +14,14 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.*;
+import java.util.List;
 
 /**
  * @author iAnton
@@ -46,9 +51,8 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_REMOVE_POINT = "Remove Point";
     private static final String MENU_ITEM_MOVE_POINT = "Move Point";
 
-    private static final String EDITOR_PANE = "Editor";
     private static final String DESIGNER_PANE = "Designer";
-
+    private ArrayList<String> alphabet = new ArrayList<>();
     private final EditorPanel editorPanel;
     private final DesignerPanel designerPanel;
 
@@ -60,8 +64,19 @@ public class MainFrame extends JFrame {
         designerPanel = new DesignerPanel();
 
         createMenu();
-        createTabbedPane(editorPanel, designerPanel);
+        createAlphabet();
+
+        createTabbedPane(designerPanel);
         showGUI();
+    }
+
+    private void createAlphabet() {
+        for (char i = 'a'; i <= 'z'; ++i) {
+            alphabet.add("" + i);
+        }
+        for (char i = 'A'; i <= 'Z'; ++i) {
+            alphabet.add("" + i);
+        }
     }
 
     private void showGUI() {
@@ -82,6 +97,7 @@ public class MainFrame extends JFrame {
         final JMenuItem saveFileMenuItem = new JMenuItem(MENU_ITEM_SAVE);
         final JMenuItem openFileMenuItem = new JMenuItem(MENU_ITEM_OPEN);
         final JMenuItem exitFileMenuItem = new JMenuItem(MENU_ITEM_EXIT);
+        newFileMenuItem.addActionListener(new OnNewListener());
         saveFileMenuItem.addActionListener(new OnSaveListener());
         openFileMenuItem.addActionListener(new OnOpenListener());
         exitFileMenuItem.addActionListener(new OnExitListener());
@@ -125,11 +141,9 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    private void createTabbedPane(EditorPanel editorPanel, DesignerPanel designerPanel) {
+    private void createTabbedPane(DesignerPanel designerPanel) {
         final JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(EDITOR_PANE, editorPanel);
         tabbedPane.addTab(DESIGNER_PANE, designerPanel);
-
         add(tabbedPane);
     }
 
@@ -137,14 +151,54 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            final JFileChooser fileChooser = new JFileChooser();
-            if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
-                    writer.print(editorPanel.getText());
-                } catch (FileNotFoundException e1) {
-                    e1.printStackTrace();
+            Object[] possibilities = alphabet.toArray();
+            Frame frame = new Frame();
+            String s = (String) JOptionPane.showInputDialog(
+                    frame,
+                    "Choose letter:",
+                    "Save letter font",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    possibilities,
+                    "a");
+
+            if ((s != null) && (s.length() > 0)) {
+
+                final JFileChooser fileChooser = new JFileChooser();
+                if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                    try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
+                        saveLetter(s, writer);
+                        writer.close();
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
+
+        }
+    }
+
+    private void saveLetter(String s, PrintWriter writer) {
+        writer.write(s + "\n"); // first string -- letter
+        java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
+        writer.write(lines.size() + "\n"); // second string -- amount of lines
+        for (UserSelectionLine line : lines) {
+            writer.write(line.getStartTangent().x + " " + line.getStartTangent().y + "\n"); // first string for each line if start tangent
+            writer.write(line.getEndTangent().x + " " + line.getEndTangent().y + "\n"); // second string for each line if end tangent
+            List<String> line_x = new ArrayList<>();
+            List<String> line_y = new ArrayList<>();
+            for (PointFloat p : line.getPoints()) {
+                line_x.add(p.x + "");
+                line_y.add(p.y + "");
+            }
+            for (String str : line_x) {
+                writer.write(str + " "); // x coord of points
+            }
+            writer.write("\n");
+            for (String str : line_y) {
+                writer.write(str + " "); // y coord of points
+            }
+            writer.write("\n");
         }
     }
 
@@ -155,6 +209,7 @@ public class MainFrame extends JFrame {
             final JFileChooser fileChooser = new JFileChooser();
             if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
                 try {
+                    loadFont(fileChooser.getSelectedFile());
                     editorPanel.setText(new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().toURI()))));
                 } catch (IOException e1) {
                     e1.printStackTrace();
@@ -163,14 +218,40 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void loadFont(File loadFile) {
+        List<UserSelectionLine> lines = new ArrayList<>();
+        List<String> linesInfo = new ArrayList<>();
+        try {
+            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        linesInfo.remove(0);
+        int numLines = Integer.valueOf(linesInfo.get(0));
+        final int shift = 4;
+        linesInfo.remove(0);
+        for (int i = 0; i < numLines; ++i) {
+            UserSelectionLine line = new UserSelectionLine();
+            String[] s = linesInfo.get(i * shift).split(" "); // first tangent
+            line.setStartTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
+            s = linesInfo.get(i * shift + 1).split(" "); // first tangent
+            line.setEndTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
+            String[] x = linesInfo.get(i * shift + 2).split(" ");
+            String[] y = linesInfo.get(i * shift + 3).split(" ");
+            for (int j = 0; j < x.length; ++j) {
+                line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
+            }
+            lines.add(line);
+        }
+        designerPanel.resetLines(lines);
+    }
+
     private final class OnExitListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            for (Frame frame : Frame.getFrames())
-            {
-                if (frame.isActive())
-                {
+            for (Frame frame : Frame.getFrames()) {
+                if (frame.isActive()) {
                     WindowEvent windowClosing = new WindowEvent(frame, WindowEvent.WINDOW_CLOSING);
                     frame.dispatchEvent(windowClosing);
                 }
@@ -189,6 +270,16 @@ public class MainFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             designerPanel.removeLine();
+        }
+    }
+
+    private class OnNewListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            List<UserSelectionLine> lines = new ArrayList<>();
+            lines.add(new UserSelectionLine(Color.RED));
+            designerPanel.resetLines(lines);
         }
     }
 }

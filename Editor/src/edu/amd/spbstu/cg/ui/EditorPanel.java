@@ -9,6 +9,7 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.KeyAdapter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,9 +27,9 @@ public class EditorPanel extends JPanel implements ListSelectionListener, KeyLis
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
     private final JList<String> linelist;
     private final JTextPane textPane;
+    private final SpinnerModel fontSpinnerModel = new SpinnerNumberModel(PaintArea.DEFAULT_FONT_SIZE, MIN_VALUE, MAX_VALUE, 1);
     private PaintArea paintArea;
     private ArrayList<String> activeLetters = new ArrayList<>();
-    private SpinnerModel fontSpinnerModel = new SpinnerNumberModel(PaintArea.DEFAULT_FONT_SIZE, MIN_VALUE, MAX_VALUE, 1);
 
     public EditorPanel(MainFrame mainFrame) {
         super(new BorderLayout());
@@ -40,6 +41,7 @@ public class EditorPanel extends JPanel implements ListSelectionListener, KeyLis
 
         textPane = new JTextPane();
         textPane.getDocument().addDocumentListener(new TextChangedListener());
+        textPane.addKeyListener(new TextKeyListener());
         final JScrollPane paneScrollPane = new JScrollPane(textPane);
         paneScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
@@ -173,20 +175,23 @@ public class EditorPanel extends JPanel implements ListSelectionListener, KeyLis
     }
 
     private class TextChangedListener implements DocumentListener {
+        private void processText() {
+            paintArea.printText(textPane.getText());
+        }
+
         @Override
         public void insertUpdate(DocumentEvent e) {
-            paintArea.printText(textPane.getText());
+            processText();
         }
 
         @Override
         public void removeUpdate(DocumentEvent e) {
-            paintArea.printText(textPane.getText());
-
+            processText();
         }
 
         @Override
         public void changedUpdate(DocumentEvent e) {
-            paintArea.printText(textPane.getText());
+            processText();
         }
     }
 
@@ -196,6 +201,16 @@ public class EditorPanel extends JPanel implements ListSelectionListener, KeyLis
             final int fontSize = (int) fontSpinnerModel.getValue();
             paintArea.setFontSize(fontSize);
             mainFrame.updateMenuButtons(fontSize != MIN_VALUE, fontSize != MAX_VALUE);
+        }
+    }
+
+    private final class TextKeyListener extends KeyAdapter {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            char c = e.getKeyChar();
+            if (c != ' ' && !letterFonts.keySet().contains("" + c)) {
+                e.consume();
+            }
         }
     }
 }

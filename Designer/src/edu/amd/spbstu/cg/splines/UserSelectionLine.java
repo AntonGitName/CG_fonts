@@ -43,6 +43,10 @@ public class UserSelectionLine {
         return color;
     }
 
+    public void setColor(Color newColor) {
+        color = newColor;
+    }
+
     private float dist(int i, PointFloat point) {
         final int n = size();
         return dist(points.get(i % n), point) + dist(points.get((i + 1) % n), point);
@@ -109,9 +113,5 @@ public class UserSelectionLine {
 
     public void setEndTangent(PointFloat endTangent) {
         this.endTangent = endTangent;
-    }
-
-    public void setColor(Color newColor) {
-        color = newColor;
     }
 }

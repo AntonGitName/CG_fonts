@@ -33,7 +33,7 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_REDO = "Redo";
     private static final String MENU_ITEM_COPY = "Copy";
     private static final String MENU_ITEM_PASTE = "Paste";
-    private static final String MENU_FONT_OPEN = "Paste";
+    private static final String MENU_FONT_OPEN = "Open font";
     private static final String MENU_TEXT_INC = "Increase font size";
     private static final String MENU_TEXT_DEC = "Decrease font size";
 
@@ -72,6 +72,7 @@ public class MainFrame extends JFrame {
         openFontMenuItem.addActionListener(new OnOpenFontListener());
 
         fileMenu.add(newFileMenuItem);
+        fileMenu.add(openFontMenuItem);
         fileMenu.add(saveFileMenuItem);
         fileMenu.add(openFileMenuItem);
         fileMenu.add(exitFileMenuItem);
@@ -187,8 +188,8 @@ public class MainFrame extends JFrame {
 
     private boolean checkTypeFile(File fileEntry) {
         String fileName = fileEntry.getName();
-        String[] s = fileName.split(".");
-        if (s[s.length - 1] == "fnttp") {
+        String s = fileName.substring(fileName.lastIndexOf('.'), fileName.length());
+        if (s.equals(".fnttp")) {
             return true;
         }
         return false;

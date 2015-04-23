@@ -131,7 +131,7 @@ public class PaintArea extends JPanel {
         this.activeLine = selectionLines.get(activeLine);
     }
 
-    private Area getResultingArea(List<Shape> shapes) {
+    private static Area getResultingArea(List<Shape> shapes) {
         final Area result = new Area();
         for (Shape shape : shapes) {
             result.exclusiveOr(new Area(shape));

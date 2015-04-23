@@ -1,21 +1,26 @@
 package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
-import edu.amd.spbstu.cg.splines.LetterFonts;
+import edu.amd.spbstu.cg.splines.HermiteSpline;
+import edu.amd.spbstu.cg.splines.LetterFont;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author iAnton
  * @since 23/04/15
  */
 public class EditorPanel extends JPanel implements ListSelectionListener {
-    private List<LetterFonts> letterFonts = new ArrayList<>();
+    private Map<String, LetterFont> letterFonts = new HashMap<>();
     private static final int MAX_TEXT_SIZE = 50;
     private static final int MIN_TEXT_SIZE = 5;
     private PaintArea paintArea;
@@ -24,6 +29,11 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
     private final JTextPane textPane;
     private int textSize;
     private ArrayList<String> activeLetters = new ArrayList<>();
+
+    public Map<String, LetterFont> getLetterFonts() {
+        return letterFonts;
+    }
+
     public EditorPanel() {
         super(new BorderLayout());
         linelist = new JList<>(lineListModel);
@@ -32,10 +42,11 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         final JScrollPane listScrollPane = new JScrollPane(linelist);
 
         textPane = new JTextPane();
+        textPane.getDocument().addDocumentListener(new TextChangedListener());
         final JScrollPane paneScrollPane = new JScrollPane(textPane);
         paneScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        paintArea = new PaintArea(this);
+        paintArea = new PaintArea(this, letterFonts);
 
         final JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, paintArea, paneScrollPane);
         splitPane.setResizeWeight(0.9d);
@@ -53,20 +64,12 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
         if (!activeLetters.contains(letter)) {
             activeLetters.add(letter);
             lineListModel.add(lineListModel.size(), letter);
-            letterFonts.add(new LetterFonts(letter, points, startTangent, endTangent));
+            List<HermiteSpline> hermiteSplines = new ArrayList<>();
+            for (int i = 0; i < points.size(); ++i) {
+                hermiteSplines.add(new HermiteSpline(points.get(i), startTangent.get(i), endTangent.get(i)));
+            }
+            letterFonts.put(letter, new LetterFont(hermiteSplines));
         }
-    }
-
-    public String getText() {
-        return textPane.getText();
-    }
-
-    public void setText(String text) {
-        textPane.setText(text);
-    }
-
-    public void setTextSize(int textSize) {
-        this.textSize = textSize;
     }
 
     public void incTextSize() {
@@ -88,5 +91,23 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
     @Override
     public void valueChanged(ListSelectionEvent e) {
 
+    }
+
+    private class TextChangedListener implements DocumentListener {
+        @Override
+        public void insertUpdate(DocumentEvent e) {
+            paintArea.printText(textPane.getText());
+        }
+
+        @Override
+        public void removeUpdate(DocumentEvent e) {
+            paintArea.printText(textPane.getText());
+
+        }
+
+        @Override
+        public void changedUpdate(DocumentEvent e) {
+            paintArea.printText(textPane.getText());
+        }
     }
 }

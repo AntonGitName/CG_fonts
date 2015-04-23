@@ -43,6 +43,14 @@ public class PaintArea extends JPanel {
         float x = 0;
         float y = 0;
         for (char ch : text.toCharArray()) {
+            if (ch == ' ') {
+                x += letterWidth / 2;
+                if (x + letterWidth >= width) {
+                    x = 0;
+                    y += letterHeight + letterDH;
+                }
+                continue;
+            }
             if (editorPanel.getLetterFonts().containsKey("" + ch)) {
                 lettersArea.add(letterFonts.get("" + ch).getArea(x, y, letterWidth, letterHeight, fontSize * 2));
                 x += letterWidth + letterDW;

@@ -33,8 +33,8 @@ public class MainFrame extends JFrame {
     private static final String MENU_FILE = "File";
     private static final String MENU_EDIT = "Edit";
     private static final String MENU_LINE = "Line";
-    private static final String MENU_SUB_LINE = "Edit";
     private static final String MENU_ITEM_NEW = "New";
+    private static final String MENU_ITEM_MOVE = "Move";
     private static final String MENU_ITEM_OPEN = "Open";
     private static final String MENU_ITEM_SAVE = "Save";
     private static final String MENU_ITEM_EXIT = "Exit";
@@ -44,10 +44,6 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_PASTE = "Paste";
     private static final String MENU_ITEM_ADD = "Add";
     private static final String MENU_ITEM_REMOVE = "Remove";
-    private static final String MENU_ITEM_SET_VECTOR = "Set Vector";
-    private static final String MENU_ITEM_ADD_POINT = "Add Point";
-    private static final String MENU_ITEM_REMOVE_POINT = "Remove Point";
-    private static final String MENU_ITEM_MOVE_POINT = "Move Point";
 
     private static final List<String> alphabet = new ArrayList<>();
     private final DesignerPanel designerPanel;
@@ -63,12 +59,15 @@ public class MainFrame extends JFrame {
 
     private JMenuItem redoEditItem;
     private JMenuItem undoEditItem;
+    private JMenuItem pasteEditItem;
+    private JMenuItem addLineItem;
+    private JMenuItem removeLineItem;
 
     public MainFrame() {
         super(TITLE);
 
         createMenu();
-        add(designerPanel = new DesignerPanel(redoEditItem, undoEditItem));
+        add(designerPanel = new DesignerPanel(this));
         showGUI();
     }
 
@@ -84,7 +83,6 @@ public class MainFrame extends JFrame {
         final JMenu fileMenu = new JMenu(MENU_FILE);
         final JMenu editMenu = new JMenu(MENU_EDIT);
         final JMenu lineMenu = new JMenu(MENU_LINE);
-        final JMenu lineSubMenu = new JMenu(MENU_SUB_LINE);
 
         final JMenuItem newFileMenuItem = new JMenuItem(MENU_ITEM_NEW);
         final JMenuItem saveFileMenuItem = new JMenuItem(MENU_ITEM_SAVE);
@@ -103,7 +101,7 @@ public class MainFrame extends JFrame {
         redoEditItem = new JMenuItem(MENU_ITEM_REDO);
         undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
         final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
-        final JMenuItem pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
+        pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
         redoEditItem.addActionListener(new OnRedoListener());
         undoEditItem.addActionListener(new OnUndoListener());
         copyEditItem.addActionListener(new OnCopyListener());
@@ -114,23 +112,15 @@ public class MainFrame extends JFrame {
         editMenu.add(copyEditItem);
         editMenu.add(pasteEditItem);
 
-        final JMenuItem addPointItem = new JMenuItem(MENU_ITEM_ADD_POINT);
-        final JMenuItem removePointItem = new JMenuItem(MENU_ITEM_REMOVE_POINT);
-        final JMenuItem movePointItem = new JMenuItem(MENU_ITEM_MOVE_POINT);
-
-        lineSubMenu.add(addPointItem);
-        lineSubMenu.add(removePointItem);
-        lineSubMenu.add(movePointItem);
-
-        final JMenuItem addLineItem = new JMenuItem(MENU_ITEM_ADD);
-        final JMenuItem removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
-        final JMenuItem setVectorLineItem = new JMenuItem(MENU_ITEM_SET_VECTOR);
+        addLineItem = new JMenuItem(MENU_ITEM_ADD);
+        removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
+        final JMenuItem moveLineItem = new JMenuItem(MENU_ITEM_MOVE);
         addLineItem.addActionListener(new OnAddLineListener());
         removeLineItem.addActionListener(new OnRemoveLineListener());
+        moveLineItem.addActionListener(new OnMoveLineListener());
         lineMenu.add(addLineItem);
         lineMenu.add(removeLineItem);
-        lineMenu.add(lineSubMenu);
-        lineMenu.add(setVectorLineItem);
+        lineMenu.add(moveLineItem);
 
         menuBar.add(fileMenu);
         menuBar.add(editMenu);
@@ -222,8 +212,16 @@ public class MainFrame extends JFrame {
             line.setEndTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
             lines.add(line);
         }
-        designerPanel.setbBox(bBox);
+        designerPanel.setBoundingBox(bBox);
         designerPanel.resetLines(lines);
+    }
+
+    public void updateMenuButtons(boolean canUndo, boolean canRedo, boolean canAdd, boolean canRemove) {
+        undoEditItem.setEnabled(canUndo);
+        redoEditItem.setEnabled(canRedo);
+        pasteEditItem.setEnabled(canAdd);
+        addLineItem.setEnabled(canAdd);
+        removeLineItem.setEnabled(canRemove);
     }
 
     private final class OnSaveListener implements ActionListener {
@@ -333,6 +331,13 @@ public class MainFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             designerPanel.copy();
+        }
+    }
+
+    private final class OnMoveLineListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.moveActiveLine();
         }
     }
 }

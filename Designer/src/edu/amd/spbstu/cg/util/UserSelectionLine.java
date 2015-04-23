@@ -120,4 +120,10 @@ public class UserSelectionLine {
     public void setEndTangent(PointFloat endTangent) {
         this.endTangent = endTangent;
     }
+
+    public void moveLine(PointFloat sub) {
+        for (int i = 0; i < points.size(); ++i) {
+            points.set(i, points.get(i).add(sub));
+        }
+    }
 }

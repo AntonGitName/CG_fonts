@@ -42,9 +42,11 @@ public class PaintArea extends JPanel {
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
-
     private List<PaintAreaState> savedStates = new ArrayList<>();
     private int currentState = -1;
+    private UserSelectionLine savedLine;
+    private boolean readyToMoveLine;
+    private PointFloat startLineMovingPoint;
 
     public PaintArea(DesignerPanel designerPanel) {
         this.designerPanel = designerPanel;
@@ -222,8 +224,24 @@ public class PaintArea extends JPanel {
         activeLine = selectionLines.get(0);
     }
 
+    public void doubleSavedCurve(Color color) {
+        savedLine.setColor(color);
+        selectionLines.add(activeLine = new UserSelectionLine(savedLine));
+        designerPanel.restoreLinelist(selectionLines, activeLine.getColor());
+        saveState();
+        repaint();
+    }
+
+    public void saveCurrentCurve() {
+        savedLine = new UserSelectionLine(activeLine);
+    }
+
+    public void moveActiveLine() {
+        readyToMoveLine = true;
+    }
+
     private enum ActionType {
-        MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT, MOVE_BOUNDING_BOX
+        MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT, MOVE_BOUNDING_BOX, MOVE_LINE
     }
 
     private final class MouseListener extends MouseAdapter {
@@ -234,7 +252,6 @@ public class PaintArea extends JPanel {
                 switch (actionType) {
                     case MOVE_POINT:
                         activeLine.set(numPointMoved, p);
-                        actionType = ActionType.NO_ACTION;
                         break;
                     case CHANGE_VECTOR:
                         if (numPointMoved == 0) {
@@ -243,9 +260,9 @@ public class PaintArea extends JPanel {
                         if (numPointMoved == 1) {
                             activeLine.setEndTangent(p.sub(activeLine.getFirstPoint()));
                         }
-                        actionType = ActionType.NO_ACTION;
                         break;
                     case MOVE_BOUNDING_BOX:
+                    case MOVE_LINE:
                         break;
                     default:
                         activeLine.addBestFit(p);
@@ -259,12 +276,12 @@ public class PaintArea extends JPanel {
                             break;
                         }
                         activeLine.getPoints().remove(numPointMoved);
-                        actionType = ActionType.NO_ACTION;
                         break;
                     default:
                         break;
                 }
             }
+            actionType = ActionType.NO_ACTION;
             saveState();
             repaint();
         }
@@ -272,6 +289,12 @@ public class PaintArea extends JPanel {
         @Override
         public void mousePressed(MouseEvent event) {
             PointFloat p = new PointFloat(event.getPoint());
+            if (readyToMoveLine) {
+                readyToMoveLine = false;
+                startLineMovingPoint = p;
+                actionType = ActionType.MOVE_LINE;
+                return;
+            }
             if (!event.isMetaDown()) {
                 for (int i = 0; i < activeLine.getPoints().size(); ++i) {
                     if (isInCircle(p, activeLine.get(i), POINT_DIAMETER)) {
@@ -316,6 +339,10 @@ public class PaintArea extends JPanel {
             final PointFloat p = new PointFloat(e.getPoint());
             if (!e.isMetaDown()) {
                 switch (actionType) {
+                    case MOVE_LINE:
+                        activeLine.moveLine(p.sub(startLineMovingPoint));
+                        startLineMovingPoint = p;
+                        break;
                     case MOVE_BOUNDING_BOX:
                         boundingBox.setPoint(p, numPointMoved);
                         break;

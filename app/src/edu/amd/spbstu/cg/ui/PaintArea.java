@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.ui.designer;
+package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.BoundingBox;
 import edu.amd.spbstu.cg.geom.PointFloat;
@@ -33,11 +33,9 @@ public class PaintArea extends JPanel {
     private static final Color END_TANGENT_COLOR = Color.getColor("violet", 0x8E21A9);
 
     private static final Color BOUNDING_BOX_COLOR = Color.getColor("gray", 0x4d4646);
-
-    private List<UserSelectionLine> selectionLines;
     private final Paint texturePaint;
     private final BoundingBox boundingBox = new BoundingBox(50, 50, 450, 450);
-
+    private List<UserSelectionLine> selectionLines;
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;

@@ -6,8 +6,6 @@ package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
-import edu.amd.spbstu.cg.ui.designer.DesignerPanel;
-import edu.amd.spbstu.cg.ui.editor.EditorPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +27,7 @@ import java.util.List;
  */
 public class MainFrame extends JFrame {
 
-    private static final String TITLE = "Font editor";
+    private static final String TITLE = "Font Designer";
     private static final Dimension DEFAULT_SIZE = new Dimension(800, 600);
 
     private static final String MENU_FILE = "File";
@@ -51,32 +49,24 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_REMOVE_POINT = "Remove Point";
     private static final String MENU_ITEM_MOVE_POINT = "Move Point";
 
-    private static final String DESIGNER_PANE = "Designer";
-    private ArrayList<String> alphabet = new ArrayList<>();
-    private final EditorPanel editorPanel;
+    private static final List<String> alphabet = new ArrayList<>();
     private final DesignerPanel designerPanel;
 
-
-    public MainFrame() {
-        super(TITLE);
-
-        editorPanel = new EditorPanel();
-        designerPanel = new DesignerPanel();
-
-        createMenu();
-        createAlphabet();
-
-        createTabbedPane(designerPanel);
-        showGUI();
-    }
-
-    private void createAlphabet() {
+    static {
         for (char i = 'a'; i <= 'z'; ++i) {
             alphabet.add("" + i);
         }
         for (char i = 'A'; i <= 'Z'; ++i) {
             alphabet.add("" + i);
         }
+    }
+
+    public MainFrame() {
+        super(TITLE);
+
+        add(designerPanel = new DesignerPanel());
+        createMenu();
+        showGUI();
     }
 
     private void showGUI() {
@@ -141,10 +131,56 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    private void createTabbedPane(DesignerPanel designerPanel) {
-        final JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(DESIGNER_PANE, designerPanel);
-        add(tabbedPane);
+    private void saveLetter(String s, PrintWriter writer) {
+        writer.write(s + "\n"); // first string -- letter
+        java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
+        writer.write(lines.size() + "\n"); // second string -- amount of lines
+        for (UserSelectionLine line : lines) {
+            writer.write(line.getStartTangent().x + " " + line.getStartTangent().y + "\n"); // first string for each line if start tangent
+            writer.write(line.getEndTangent().x + " " + line.getEndTangent().y + "\n"); // second string for each line if end tangent
+            List<String> line_x = new ArrayList<>();
+            List<String> line_y = new ArrayList<>();
+            for (PointFloat p : line.getPoints()) {
+                line_x.add(p.x + "");
+                line_y.add(p.y + "");
+            }
+            for (String str : line_x) {
+                writer.write(str + " "); // x coord of points
+            }
+            writer.write("\n");
+            for (String str : line_y) {
+                writer.write(str + " "); // y coord of points
+            }
+            writer.write("\n");
+        }
+    }
+
+    private void loadFont(File loadFile) {
+        List<UserSelectionLine> lines = new ArrayList<>();
+        List<String> linesInfo = new ArrayList<>();
+        try {
+            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        linesInfo.remove(0);
+        int numLines = Integer.valueOf(linesInfo.get(0));
+        final int shift = 4;
+        linesInfo.remove(0);
+        for (int i = 0; i < numLines; ++i) {
+            UserSelectionLine line = new UserSelectionLine();
+            String[] s = linesInfo.get(i * shift).split(" "); // first tangent
+            line.setStartTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
+            s = linesInfo.get(i * shift + 1).split(" "); // first tangent
+            line.setEndTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
+            String[] x = linesInfo.get(i * shift + 2).split(" ");
+            String[] y = linesInfo.get(i * shift + 3).split(" ");
+            for (int j = 0; j < x.length; ++j) {
+                line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
+            }
+            lines.add(line);
+        }
+        designerPanel.resetLines(lines);
     }
 
     private final class OnSaveListener implements ActionListener {
@@ -178,72 +214,15 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void saveLetter(String s, PrintWriter writer) {
-        writer.write(s + "\n"); // first string -- letter
-        java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
-        writer.write(lines.size() + "\n"); // second string -- amount of lines
-        for (UserSelectionLine line : lines) {
-            writer.write(line.getStartTangent().x + " " + line.getStartTangent().y + "\n"); // first string for each line if start tangent
-            writer.write(line.getEndTangent().x + " " + line.getEndTangent().y + "\n"); // second string for each line if end tangent
-            List<String> line_x = new ArrayList<>();
-            List<String> line_y = new ArrayList<>();
-            for (PointFloat p : line.getPoints()) {
-                line_x.add(p.x + "");
-                line_y.add(p.y + "");
-            }
-            for (String str : line_x) {
-                writer.write(str + " "); // x coord of points
-            }
-            writer.write("\n");
-            for (String str : line_y) {
-                writer.write(str + " "); // y coord of points
-            }
-            writer.write("\n");
-        }
-    }
-
     private final class OnOpenListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             final JFileChooser fileChooser = new JFileChooser();
             if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                try {
-                    loadFont(fileChooser.getSelectedFile());
-                    editorPanel.setText(new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().toURI()))));
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
+                loadFont(fileChooser.getSelectedFile());
             }
         }
-    }
-
-    private void loadFont(File loadFile) {
-        List<UserSelectionLine> lines = new ArrayList<>();
-        List<String> linesInfo = new ArrayList<>();
-        try {
-            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        linesInfo.remove(0);
-        int numLines = Integer.valueOf(linesInfo.get(0));
-        final int shift = 4;
-        linesInfo.remove(0);
-        for (int i = 0; i < numLines; ++i) {
-            UserSelectionLine line = new UserSelectionLine();
-            String[] s = linesInfo.get(i * shift).split(" "); // first tangent
-            line.setStartTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
-            s = linesInfo.get(i * shift + 1).split(" "); // first tangent
-            line.setEndTangent(new PointFloat(Float.valueOf(s[0]), Float.valueOf(s[1])));
-            String[] x = linesInfo.get(i * shift + 2).split(" ");
-            String[] y = linesInfo.get(i * shift + 3).split(" ");
-            for (int j = 0; j < x.length; ++j) {
-                line.add(new PointFloat(Float.valueOf(x[j]), Float.valueOf(y[j])));
-            }
-            lines.add(line);
-        }
-        designerPanel.resetLines(lines);
     }
 
     private final class OnExitListener implements ActionListener {

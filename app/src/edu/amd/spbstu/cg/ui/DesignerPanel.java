@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.ui.designer;
+package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
 
@@ -8,11 +8,8 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.*;
 import java.util.List;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author iAnton
@@ -25,7 +22,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
 
     private static final String REMOVE_ICON = "res/remove.png";
     private static final String ADD_ICON = "res/add.png";
-    private static final double LEFT_PANEL_DIVIDER = 0.9;
+    private static final double LEFT_PANE_DIVIDER = 0.9;
     private static final Map<Color, String> ALL_COLORS_MAP;
     private static Color[] ALL_COLORS = {Color.blue, Color.cyan, Color.green, Color.orange, Color.pink, Color.darkGray};
     private static String[] COLOR_NAMES = {"Blue", "Cyan", "Green", "Orange", "Pink", "Gray"};
@@ -49,9 +46,6 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         linelist.addListSelectionListener(this);
         final JScrollPane listScrollPane = new JScrollPane(linelist);
         final JPanel buttonsPanel = new JPanel();
-        //buttonsPanel.add(new JButton(new ImageIcon(ADD_ICON)));
-        // buttonsPanel.add(new JButton(new ImageIcon(REMOVE_ICON)));
-
 
         JButton button;
         buttonsPanel.add(button = new JButton(new ImageIcon(ADD_ICON)));
@@ -83,8 +77,8 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
 
         add(splitPane);
 
-        leftPanel.setDividerLocation(LEFT_PANEL_DIVIDER);
-        leftPanel.setResizeWeight(LEFT_PANEL_DIVIDER);
+        leftPanel.setDividerLocation(LEFT_PANE_DIVIDER);
+        leftPanel.setResizeWeight(LEFT_PANE_DIVIDER);
         leftPanel.setEnabled(false);
 
 

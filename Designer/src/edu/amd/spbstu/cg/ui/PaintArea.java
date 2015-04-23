@@ -42,9 +42,9 @@ public class PaintArea extends JPanel {
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
-
     private List<PaintAreaState> savedStates = new ArrayList<>();
     private int currentState = -1;
+    private UserSelectionLine savedLine;
 
     public PaintArea(DesignerPanel designerPanel) {
         this.designerPanel = designerPanel;
@@ -220,6 +220,18 @@ public class PaintArea extends JPanel {
     public void setLines(List<UserSelectionLine> lines) {
         selectionLines = lines;
         activeLine = selectionLines.get(0);
+    }
+
+    public void doubleSavedCurve(Color color) {
+        savedLine.setColor(color);
+        selectionLines.add(activeLine = new UserSelectionLine(savedLine));
+        designerPanel.restoreLinelist(selectionLines, activeLine.getColor());
+        saveState();
+        repaint();
+    }
+
+    public void saveCurrentCurve() {
+        savedLine = new UserSelectionLine(activeLine);
     }
 
     private enum ActionType {

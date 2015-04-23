@@ -30,8 +30,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
     private final JList<String> linelist;
     private final PaintArea paintArea;
-    private final JMenuItem redoEditItem;
-    private final JMenuItem undoEditItem;
+    private final MainFrame mainFrame;
     static {
         ALL_COLORS_MAP = new HashMap<>();
         for (int i = 0; i < ALL_COLORS.length; ++i) {
@@ -39,12 +38,14 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         }
     }
 
+    private final JButton addLineButton;
+    private final JButton removeLineButton;
+
     private Set<Color> availableColors;
 
-    public DesignerPanel(JMenuItem redoEditItem, JMenuItem undoEditItem) {
+    public DesignerPanel(MainFrame mainFrame) {
         super(new BorderLayout());
-        this.redoEditItem = redoEditItem;
-        this.undoEditItem = undoEditItem;
+        this.mainFrame = mainFrame;
 
         linelist = new JList<>(lineListModel);
         linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -52,16 +53,15 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         final JScrollPane listScrollPane = new JScrollPane(linelist);
         final JPanel buttonsPanel = new JPanel();
 
-        JButton button;
-        buttonsPanel.add(button = new JButton(new ImageIcon(ADD_ICON)));
-        button.addActionListener(new ActionListener() {
+        buttonsPanel.add(addLineButton = new JButton(new ImageIcon(ADD_ICON)));
+        addLineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addLine();
             }
         });
-        buttonsPanel.add(button = new JButton(new ImageIcon(REMOVE_ICON)));
-        button.addActionListener(new ActionListener() {
+        buttonsPanel.add(removeLineButton = new JButton(new ImageIcon(REMOVE_ICON)));
+        removeLineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 removeLine();
@@ -96,12 +96,13 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     public void addLine() {
         if (!availableColors.isEmpty()) {
             final Color color = availableColors.iterator().next();
-            paintArea.addLine(color);
             availableColors.remove(color);
+            paintArea.addLine(color);
             lineListModel.add(lineListModel.size(), ALL_COLORS_MAP.get(color));
             sortLinelist();
             linelist.setSelectedIndex(lineListModel.size() - 1);
         }
+        updateMenuButtons();
     }
 
     public void restoreLinelist(List<UserSelectionLine> lines, Color activeColor) {
@@ -113,6 +114,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
             lineListModel.add(lineListModel.size(), ALL_COLORS_MAP.get(color));
         }
         linelist.setSelectedIndex(lineListModel.indexOf(ALL_COLORS_MAP.get(activeColor)));
+        updateMenuButtons();
     }
 
     private void sortLinelist() {
@@ -137,15 +139,20 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     }
 
     public void updateMenuButtons() {
-        undoEditItem.setEnabled(paintArea.hasPrevState());
-        redoEditItem.setEnabled(paintArea.hasNextState());
+        addLineButton.setEnabled(!availableColors.isEmpty());
+        removeLineButton.setEnabled(lineListModel.size() > 1);
+        mainFrame.updateMenuButtons(paintArea.hasPrevState(), paintArea.hasNextState(), !availableColors.isEmpty(), lineListModel.size() > 1);
     }
 
     public void copy() {
+        paintArea.saveCurrentCurve();
+        updateMenuButtons();
     }
 
     public void paste() {
-
+        final Color color = availableColors.iterator().next();
+        paintArea.doubleSavedCurve(color);
+        updateMenuButtons();
     }
 
     public void undo() {
@@ -164,6 +171,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
             lineListModel.removeElementAt(x);
             sortLinelist();
             linelist.setSelectedIndex(0);
+            updateMenuButtons();
         }
     }
 
@@ -180,11 +188,11 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         sortLinelist();
         linelist.setSelectedIndex(0);
         paintArea.setLines(lines);
+        updateMenuButtons();
     }
 
 
     public List<UserSelectionLine> getLinesInfo() {
-
         return paintArea.getLineInfo();
     }
 
@@ -192,7 +200,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         return paintArea.getBoundingBox();
     }
 
-    public void setbBox(List<PointFloat> bBox) {
+    public void setBoundingBox(List<PointFloat> bBox) {
         paintArea.setBoundingBox(bBox);
     }
 }

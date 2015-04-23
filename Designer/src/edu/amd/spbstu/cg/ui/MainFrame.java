@@ -63,12 +63,15 @@ public class MainFrame extends JFrame {
 
     private JMenuItem redoEditItem;
     private JMenuItem undoEditItem;
+    private JMenuItem pasteEditItem;
+    private JMenuItem addLineItem;
+    private JMenuItem removeLineItem;
 
     public MainFrame() {
         super(TITLE);
 
         createMenu();
-        add(designerPanel = new DesignerPanel(redoEditItem, undoEditItem));
+        add(designerPanel = new DesignerPanel(this));
         showGUI();
     }
 
@@ -103,7 +106,7 @@ public class MainFrame extends JFrame {
         redoEditItem = new JMenuItem(MENU_ITEM_REDO);
         undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
         final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
-        final JMenuItem pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
+        pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
         redoEditItem.addActionListener(new OnRedoListener());
         undoEditItem.addActionListener(new OnUndoListener());
         copyEditItem.addActionListener(new OnCopyListener());
@@ -122,8 +125,8 @@ public class MainFrame extends JFrame {
         lineSubMenu.add(removePointItem);
         lineSubMenu.add(movePointItem);
 
-        final JMenuItem addLineItem = new JMenuItem(MENU_ITEM_ADD);
-        final JMenuItem removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
+        addLineItem = new JMenuItem(MENU_ITEM_ADD);
+        removeLineItem = new JMenuItem(MENU_ITEM_REMOVE);
         final JMenuItem setVectorLineItem = new JMenuItem(MENU_ITEM_SET_VECTOR);
         addLineItem.addActionListener(new OnAddLineListener());
         removeLineItem.addActionListener(new OnRemoveLineListener());
@@ -222,8 +225,16 @@ public class MainFrame extends JFrame {
             line.setEndTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
             lines.add(line);
         }
-        designerPanel.setbBox(bBox);
+        designerPanel.setBoundingBox(bBox);
         designerPanel.resetLines(lines);
+    }
+
+    public void updateMenuButtons(boolean canUndo, boolean canRedo, boolean canAdd, boolean canRemove) {
+        undoEditItem.setEnabled(canUndo);
+        redoEditItem.setEnabled(canRedo);
+        pasteEditItem.setEnabled(canAdd);
+        addLineItem.setEnabled(canAdd);
+        removeLineItem.setEnabled(canRemove);
     }
 
     private final class OnSaveListener implements ActionListener {

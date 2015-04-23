@@ -59,6 +59,10 @@ public class UserSelectionLine {
         return points.size();
     }
 
+    public boolean add(PointFloat pointFloat) {
+        return points.add(pointFloat);
+    }
+
     public PointFloat get(int index) {
         return points.get(index);
     }

@@ -3,7 +3,8 @@ package edu.amd.spbstu.cg.ui;
 import edu.amd.spbstu.cg.geom.BoundingBox;
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.splines.HermiteSpline;
-import edu.amd.spbstu.cg.splines.UserSelectionLine;
+import edu.amd.spbstu.cg.util.PaintAreaState;
+import edu.amd.spbstu.cg.util.UserSelectionLine;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -26,21 +27,27 @@ public class PaintArea extends JPanel {
     private static final int POINT_DIAMETER = 14;
     private static final int MIN_POINTS_IN_LINE = 2;
     private static final int POINTS_PER_SPLINE = 10;
+    private static final int MAX_SAVED_STATES = 30;
     private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
-
 
     private static final Color START_TANGENT_COLOR = Color.getColor("bronze", 0xA9A121);
     private static final Color END_TANGENT_COLOR = Color.getColor("violet", 0x8E21A9);
-
     private static final Color BOUNDING_BOX_COLOR = Color.getColor("gray", 0x4d4646);
+
     private final Paint texturePaint;
-    private final BoundingBox boundingBox = new BoundingBox(50, 50, 450, 450);
+    private final DesignerPanel designerPanel;
+
+    private BoundingBox boundingBox = new BoundingBox(50, 50, 450, 450);
     private List<UserSelectionLine> selectionLines;
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
 
-    public PaintArea() {
+    private List<PaintAreaState> savedStates = new ArrayList<>();
+    private int currentState = -1;
+
+    public PaintArea(DesignerPanel designerPanel) {
+        this.designerPanel = designerPanel;
         selectionLines = new ArrayList<>();
         actionType = ActionType.NO_ACTION;
 
@@ -57,16 +64,65 @@ public class PaintArea extends JPanel {
         texturePaint = new TexturePaint(imagePattern, new Rectangle(60, 60));
     }
 
-    public List<PointFloat> getBoundingBox() {
-        return boundingBox.getPoints();
-    }
-
     private static boolean isInCircle(PointFloat p1, PointFloat p2, float d) {
         return isInCircle(p1.x, p1.y, p2.x, p2.y, d / 2);
     }
 
     private static boolean isInCircle(float x, float y, float x0, float y0, float r) {
         return (x - x0) * (x - x0) + (y - y0) * (y - y0) < r * r;
+    }
+
+    private void loadState(PaintAreaState state) {
+        selectionLines.clear();
+        for (UserSelectionLine line : state.getSelectionLines()) {
+            this.selectionLines.add(new UserSelectionLine(line));
+        }
+        boundingBox = new BoundingBox(state.getBoundingBox());
+        activeLine = selectionLines.get(state.getActiveLineIndex());
+        designerPanel.restoreLinelist(selectionLines, activeLine.getColor());
+        repaint();
+        designerPanel.updateMenuButtons();
+    }
+
+    public void loadPrevState() {
+        loadState(savedStates.get(--currentState));
+    }
+
+    public void loadNextState() {
+        loadState(savedStates.get(++currentState));
+    }
+
+    public boolean hasNextState() {
+        return currentState < savedStates.size() - 1;
+    }
+
+    public boolean hasPrevState() {
+        return currentState > 0;
+    }
+
+    private void saveState() {
+        final PaintAreaState state = new PaintAreaState(boundingBox, selectionLines, selectionLines.indexOf(activeLine));
+        if (currentState != savedStates.size() - 1) {
+            savedStates.removeAll(savedStates.subList(currentState + 1, savedStates.size()));
+        }
+        if (savedStates.size() > MAX_SAVED_STATES * 2) {
+            final List<PaintAreaState> lastStates = new ArrayList<>(savedStates.subList(MAX_SAVED_STATES, savedStates.size()));
+            savedStates.clear();
+            savedStates.addAll(lastStates);
+        }
+        currentState = savedStates.size();
+        savedStates.add(state);
+        designerPanel.updateMenuButtons();
+    }
+
+    public List<PointFloat> getBoundingBox() {
+        return boundingBox.getPoints();
+    }
+
+    public void setBoundingBox(List<PointFloat> bBox) {
+        for (int i = 0; i < 4; ++i) {
+            boundingBox.setPoint(bBox.get(i), i);
+        }
     }
 
     public void setActiveLine(int activeLine) {
@@ -80,7 +136,6 @@ public class PaintArea extends JPanel {
         }
         return result;
     }
-
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -146,6 +201,7 @@ public class PaintArea extends JPanel {
             selectionLines.add(activeLine = new UserSelectionLine(color));
             repaint();
         }
+        saveState();
     }
 
     public Color removeLine(int x) {
@@ -153,6 +209,7 @@ public class PaintArea extends JPanel {
         activeLine = selectionLines.get(0);
         selectionLines.remove(x);
         repaint();
+        saveState();
         return color;
     }
 
@@ -163,12 +220,6 @@ public class PaintArea extends JPanel {
     public void setLines(List<UserSelectionLine> lines) {
         selectionLines = lines;
         activeLine = selectionLines.get(0);
-    }
-
-    public void setBoundingBox(List<PointFloat> bBox) {
-        for (int i = 0; i < 4; ++i) {
-            boundingBox.setPoint(bBox.get(i), i);
-        }
     }
 
     private enum ActionType {
@@ -214,6 +265,7 @@ public class PaintArea extends JPanel {
                         break;
                 }
             }
+            saveState();
             repaint();
         }
 
@@ -262,7 +314,6 @@ public class PaintArea extends JPanel {
         @Override
         public void mouseDragged(MouseEvent e) {
             final PointFloat p = new PointFloat(e.getPoint());
-
             if (!e.isMetaDown()) {
                 switch (actionType) {
                     case MOVE_BOUNDING_BOX:

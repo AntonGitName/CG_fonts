@@ -14,6 +14,10 @@ public final class PointFloat {
         this(p.x, p.y);
     }
 
+    public PointFloat(PointFloat p) {
+        this(p.x, p.y);
+    }
+
     public PointFloat(float x, float y) {
         this.x = x;
         this.y = y;

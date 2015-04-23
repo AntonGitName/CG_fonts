@@ -1,4 +1,4 @@
-package edu.amd.spbstu.cg.splines;
+package edu.amd.spbstu.cg.util;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
 
@@ -19,6 +19,12 @@ public class UserSelectionLine {
     private PointFloat endTangent;
     private Color color;
 
+    public UserSelectionLine(UserSelectionLine line) {
+        startTangent = new PointFloat(line.startTangent);
+        endTangent = new PointFloat(line.endTangent);
+        points = new ArrayList<>(line.points);
+        color = line.color;
+    }
 
     public UserSelectionLine(Color lineColor) {
         startTangent = new PointFloat(-50, 50);

@@ -5,7 +5,7 @@
 package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
-import edu.amd.spbstu.cg.splines.UserSelectionLine;
+import edu.amd.spbstu.cg.util.UserSelectionLine;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,11 +61,14 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private JMenuItem redoEditItem;
+    private JMenuItem undoEditItem;
+
     public MainFrame() {
         super(TITLE);
 
-        add(designerPanel = new DesignerPanel());
         createMenu();
+        add(designerPanel = new DesignerPanel(redoEditItem, undoEditItem));
         showGUI();
     }
 
@@ -97,10 +100,14 @@ public class MainFrame extends JFrame {
         fileMenu.add(openFileMenuItem);
         fileMenu.add(exitFileMenuItem);
 
-        final JMenuItem redoEditItem = new JMenuItem(MENU_ITEM_REDO);
-        final JMenuItem undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
+        redoEditItem = new JMenuItem(MENU_ITEM_REDO);
+        undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
         final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
         final JMenuItem pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
+        redoEditItem.addActionListener(new OnRedoListener());
+        undoEditItem.addActionListener(new OnUndoListener());
+        copyEditItem.addActionListener(new OnCopyListener());
+        pasteEditItem.addActionListener(new OnPasteListener());
 
         editMenu.add(redoEditItem);
         editMenu.add(undoEditItem);
@@ -129,41 +136,6 @@ public class MainFrame extends JFrame {
         menuBar.add(editMenu);
         menuBar.add(lineMenu);
         setJMenuBar(menuBar);
-    }
-
-
-    private final class OnSaveListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (!CheckBBox()) {
-                return; /// SHOW MESSAGE
-            }
-            Object[] possibilities = alphabet.toArray();
-            Frame frame = new Frame();
-            String s = (String) JOptionPane.showInputDialog(
-                    frame,
-                    "Choose letter:",
-                    "Save letter font",
-                    JOptionPane.PLAIN_MESSAGE,
-                    null,
-                    possibilities,
-                    "a");
-
-            if ((s != null) && (s.length() > 0)) {
-
-                final JFileChooser fileChooser = new JFileChooser();
-                if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                    try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
-                        saveLetter(s, writer);
-                        writer.close();
-                    } catch (FileNotFoundException e1) {
-                        e1.printStackTrace();
-                    }
-                }
-            }
-
-        }
     }
 
     private boolean CheckBBox() {
@@ -195,33 +167,22 @@ public class MainFrame extends JFrame {
         java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
         writer.write(lines.size() + "\n"); // second string -- amount of lines
         for (UserSelectionLine line : lines) {
-            List<String> line_x = new ArrayList<>();
-            List<String> line_y = new ArrayList<>();
+            List<String> lineX = new ArrayList<>();
+            List<String> lineY = new ArrayList<>();
             for (PointFloat p : line.getPoints()) {
-                line_x.add((p.x - bBox.get(0).x) / bBoxWidth + "");
-                line_y.add((p.y - bBox.get(0).y) / bBoxHeight + "");
+                lineX.add((p.x - bBox.get(0).x) / bBoxWidth + "");
+                lineY.add((p.y - bBox.get(0).y) / bBoxHeight + "");
             }
-            for (String str : line_x) {
+            for (String str : lineX) {
                 writer.write(str + " "); // x coord of points
             }
             writer.write("\n");
-            for (String str : line_y) {
+            for (String str : lineY) {
                 writer.write(str + " "); // y coord of points
             }
             writer.write("\n");
             writer.write((line.getFakeStart().x - bBox.get(0).x) / bBoxWidth + " " + (line.getFakeStart().y - bBox.get(0).y) / bBoxHeight + "\n"); // first string for each line if start tangent
             writer.write((line.getFakeEnd().x - bBox.get(0).x) / bBoxWidth + " " + (line.getFakeEnd().y - bBox.get(0).y) / bBoxHeight + "\n"); // second string for each line if end tangent
-        }
-    }
-
-    private final class OnOpenListener implements ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            final JFileChooser fileChooser = new JFileChooser();
-            if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                loadFont(fileChooser.getSelectedFile());
-            }
         }
     }
 
@@ -265,6 +226,51 @@ public class MainFrame extends JFrame {
         designerPanel.resetLines(lines);
     }
 
+    private final class OnSaveListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!CheckBBox()) {
+                return; /// SHOW MESSAGE
+            }
+            Object[] possibilities = alphabet.toArray();
+            Frame frame = new Frame();
+            String s = (String) JOptionPane.showInputDialog(
+                    frame,
+                    "Choose letter:",
+                    "Save letter font",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    possibilities,
+                    "a");
+
+            if ((s != null) && (s.length() > 0)) {
+
+                final JFileChooser fileChooser = new JFileChooser();
+                if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                    try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
+                        saveLetter(s, writer);
+                        writer.close();
+                    } catch (FileNotFoundException e1) {
+                        e1.printStackTrace();
+                    }
+                }
+            }
+
+        }
+    }
+
+    private final class OnOpenListener implements ActionListener {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                loadFont(fileChooser.getSelectedFile());
+            }
+        }
+    }
+
     private final class OnExitListener implements ActionListener {
 
         @Override
@@ -285,20 +291,48 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private class OnRemoveLineListener implements ActionListener {
+    private final class OnRemoveLineListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             designerPanel.removeLine();
         }
     }
 
-    private class OnNewListener implements ActionListener {
+    private final class OnNewListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             List<UserSelectionLine> lines = new ArrayList<>();
             lines.add(new UserSelectionLine(Color.RED));
             designerPanel.resetLines(lines);
+        }
+    }
+
+    private final class OnRedoListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.redo();
+        }
+    }
+
+    private final class OnUndoListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.undo();
+        }
+    }
+
+    private final class OnPasteListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.paste();
+        }
+    }
+
+    private final class OnCopyListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            designerPanel.copy();
         }
     }
 }

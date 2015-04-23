@@ -1,7 +1,7 @@
 package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
-import edu.amd.spbstu.cg.splines.UserSelectionLine;
+import edu.amd.spbstu.cg.util.UserSelectionLine;
 
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -30,8 +30,8 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
     private final JList<String> linelist;
     private final PaintArea paintArea;
-    private Set<Color> availableColors;
-
+    private final JMenuItem redoEditItem;
+    private final JMenuItem undoEditItem;
     static {
         ALL_COLORS_MAP = new HashMap<>();
         for (int i = 0; i < ALL_COLORS.length; ++i) {
@@ -39,9 +39,13 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         }
     }
 
+    private Set<Color> availableColors;
 
-    public DesignerPanel() {
+    public DesignerPanel(JMenuItem redoEditItem, JMenuItem undoEditItem) {
         super(new BorderLayout());
+        this.redoEditItem = redoEditItem;
+        this.undoEditItem = undoEditItem;
+
         linelist = new JList<>(lineListModel);
         linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         linelist.addListSelectionListener(this);
@@ -67,7 +71,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         final JSplitPane leftPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, listScrollPane, buttonsPanel);
 
 
-        paintArea = new PaintArea();
+        paintArea = new PaintArea(this);
         final JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, paintArea);
 
         splitPane.setDividerLocation(DIVIDER_LOCATION);
@@ -94,7 +98,32 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
             final Color color = availableColors.iterator().next();
             paintArea.addLine(color);
             availableColors.remove(color);
-            lineListModel.add(lineListModel.size(), "Curve " + ALL_COLORS_MAP.get(color));
+            lineListModel.add(lineListModel.size(), ALL_COLORS_MAP.get(color));
+            sortLinelist();
+            linelist.setSelectedIndex(lineListModel.size() - 1);
+        }
+    }
+
+    public void restoreLinelist(List<UserSelectionLine> lines, Color activeColor) {
+        availableColors = new HashSet<>(ALL_COLORS_MAP.keySet());
+        lineListModel.clear();
+        for (UserSelectionLine line : lines) {
+            final Color color = line.getColor();
+            availableColors.remove(color);
+            lineListModel.add(lineListModel.size(), ALL_COLORS_MAP.get(color));
+        }
+        linelist.setSelectedIndex(lineListModel.indexOf(ALL_COLORS_MAP.get(activeColor)));
+    }
+
+    private void sortLinelist() {
+        final List<String> elements = new ArrayList<>(lineListModel.size());
+        for (int i = 0; i < lineListModel.size(); ++i) {
+            elements.add(lineListModel.get(i));
+        }
+        Collections.sort(elements);
+        lineListModel.removeAllElements();
+        for (String element : elements) {
+            lineListModel.add(lineListModel.size(), element);
         }
     }
 
@@ -107,12 +136,33 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         }
     }
 
+    public void updateMenuButtons() {
+        undoEditItem.setEnabled(paintArea.hasPrevState());
+        redoEditItem.setEnabled(paintArea.hasNextState());
+    }
+
+    public void copy() {
+    }
+
+    public void paste() {
+
+    }
+
+    public void undo() {
+        paintArea.loadPrevState();
+    }
+
+    public void redo() {
+        paintArea.loadNextState();
+    }
+
     public void removeLine() {
         if (lineListModel.size() > 1) {
             final int x = linelist.getSelectedIndex();
             final Color color = paintArea.removeLine(x);
             availableColors.add(color);
             lineListModel.removeElementAt(x);
+            sortLinelist();
             linelist.setSelectedIndex(0);
         }
     }
@@ -127,9 +177,9 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
             lineListModel.add(lineListModel.size(), "Curve " + ALL_COLORS_MAP.get(color));
             line.setColor(color);
         }
+        sortLinelist();
         linelist.setSelectedIndex(0);
         paintArea.setLines(lines);
-
     }
 
 

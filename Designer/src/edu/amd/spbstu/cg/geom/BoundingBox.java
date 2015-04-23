@@ -13,6 +13,11 @@ public final class BoundingBox {
     private PointFloat leftTopPoint;
     private PointFloat rightBottomPoint;
 
+    public BoundingBox(BoundingBox bb) {
+        leftTopPoint = new PointFloat(bb.leftTopPoint);
+        rightBottomPoint = new PointFloat(bb.rightBottomPoint);
+    }
+
     public BoundingBox(float x1, float y1, float x2, float y2) {
         leftTopPoint = new PointFloat(x1, y1);
         rightBottomPoint = new PointFloat(x2, y2);

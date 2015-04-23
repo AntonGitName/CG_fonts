@@ -6,8 +6,6 @@ package edu.amd.spbstu.cg.ui;
 
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.splines.UserSelectionLine;
-import edu.amd.spbstu.cg.ui.designer.DesignerPanel;
-import edu.amd.spbstu.cg.ui.editor.EditorPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +27,7 @@ import java.util.List;
  */
 public class MainFrame extends JFrame {
 
-    private static final String TITLE = "Font editor";
+    private static final String TITLE = "Font Designer";
     private static final Dimension DEFAULT_SIZE = new Dimension(800, 600);
 
     private static final String MENU_FILE = "File";
@@ -51,32 +49,24 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_REMOVE_POINT = "Remove Point";
     private static final String MENU_ITEM_MOVE_POINT = "Move Point";
 
-    private static final String DESIGNER_PANE = "Designer";
-    private ArrayList<String> alphabet = new ArrayList<>();
-    private final EditorPanel editorPanel;
+    private static final List<String> alphabet = new ArrayList<>();
     private final DesignerPanel designerPanel;
 
-
-    public MainFrame() {
-        super(TITLE);
-
-        editorPanel = new EditorPanel();
-        designerPanel = new DesignerPanel();
-
-        createMenu();
-        createAlphabet();
-
-        createTabbedPane(designerPanel);
-        showGUI();
-    }
-
-    private void createAlphabet() {
+    static {
         for (char i = 'a'; i <= 'z'; ++i) {
             alphabet.add("" + i);
         }
         for (char i = 'A'; i <= 'Z'; ++i) {
             alphabet.add("" + i);
         }
+    }
+
+    public MainFrame() {
+        super(TITLE);
+
+        add(designerPanel = new DesignerPanel());
+        createMenu();
+        showGUI();
     }
 
     private void showGUI() {
@@ -141,11 +131,6 @@ public class MainFrame extends JFrame {
         setJMenuBar(menuBar);
     }
 
-    private void createTabbedPane(DesignerPanel designerPanel) {
-        final JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(DESIGNER_PANE, designerPanel);
-        add(tabbedPane);
-    }
 
     private final class OnSaveListener implements ActionListener {
 

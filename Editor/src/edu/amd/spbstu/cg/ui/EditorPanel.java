@@ -1,11 +1,11 @@
-package edu.amd.spbstu.cg.ui.editor;
+package edu.amd.spbstu.cg.ui;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
  * @author iAnton
- * @since 14/03/15
+ * @since 23/04/15
  */
 public class EditorPanel extends JPanel {
 

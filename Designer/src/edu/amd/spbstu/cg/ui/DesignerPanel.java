@@ -203,4 +203,8 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
     public void setBoundingBox(List<PointFloat> bBox) {
         paintArea.setBoundingBox(bBox);
     }
+
+    public void moveActiveLine() {
+        paintArea.moveActiveLine();
+    }
 }

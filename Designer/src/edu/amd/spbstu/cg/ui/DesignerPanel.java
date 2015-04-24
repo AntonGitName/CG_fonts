@@ -90,6 +90,7 @@ public class DesignerPanel extends JPanel implements ListSelectionListener {
         availableColors = new HashSet<>(ALL_COLORS_MAP.keySet());
         addLine();
         linelist.setSelectedIndex(0);
+        paintArea.grabFocus();
     }
 
 

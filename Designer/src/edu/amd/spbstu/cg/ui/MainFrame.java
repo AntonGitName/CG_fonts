@@ -7,6 +7,7 @@ package edu.amd.spbstu.cg.ui;
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.util.UserSelectionLine;
 
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -93,6 +94,11 @@ public class MainFrame extends JFrame {
         openFileMenuItem.addActionListener(new OnOpenListener());
         exitFileMenuItem.addActionListener(new OnExitListener());
 
+        newFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('N', SHIFT_DOWN_MASK));
+        saveFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('S', SHIFT_DOWN_MASK));
+        openFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('L', SHIFT_DOWN_MASK));
+        exitFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('Q', SHIFT_DOWN_MASK));
+
         fileMenu.add(newFileMenuItem);
         fileMenu.add(saveFileMenuItem);
         fileMenu.add(openFileMenuItem);
@@ -100,12 +106,21 @@ public class MainFrame extends JFrame {
 
         redoEditItem = new JMenuItem(MENU_ITEM_REDO);
         undoEditItem = new JMenuItem(MENU_ITEM_UNDO);
+
         final JMenuItem copyEditItem = new JMenuItem(MENU_ITEM_COPY);
+
         pasteEditItem = new JMenuItem(MENU_ITEM_PASTE);
+
         redoEditItem.addActionListener(new OnRedoListener());
         undoEditItem.addActionListener(new OnUndoListener());
         copyEditItem.addActionListener(new OnCopyListener());
         pasteEditItem.addActionListener(new OnPasteListener());
+
+
+        undoEditItem.setAccelerator(KeyStroke.getKeyStroke('Z', SHIFT_DOWN_MASK));
+        redoEditItem.setAccelerator(KeyStroke.getKeyStroke('Y', SHIFT_DOWN_MASK));
+        pasteEditItem.setAccelerator(KeyStroke.getKeyStroke('V', SHIFT_DOWN_MASK));
+        copyEditItem.setAccelerator(KeyStroke.getKeyStroke('C', SHIFT_DOWN_MASK));
 
         editMenu.add(redoEditItem);
         editMenu.add(undoEditItem);
@@ -118,6 +133,12 @@ public class MainFrame extends JFrame {
         addLineItem.addActionListener(new OnAddLineListener());
         removeLineItem.addActionListener(new OnRemoveLineListener());
         moveLineItem.addActionListener(new OnMoveLineListener());
+
+        addLineItem.setAccelerator(KeyStroke.getKeyStroke('A', SHIFT_DOWN_MASK));
+        removeLineItem.setAccelerator(KeyStroke.getKeyStroke('D', SHIFT_DOWN_MASK));
+        moveLineItem.setAccelerator(KeyStroke.getKeyStroke('M', SHIFT_DOWN_MASK));
+
+
         lineMenu.add(addLineItem);
         lineMenu.add(removeLineItem);
         lineMenu.add(moveLineItem);

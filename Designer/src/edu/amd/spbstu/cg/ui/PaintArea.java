@@ -237,6 +237,8 @@ public class PaintArea extends JPanel {
     }
 
     public void moveActiveLine() {
+        Cursor hourglassCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
+        designerPanel.setCursor(hourglassCursor);
         readyToMoveLine = true;
     }
 
@@ -263,6 +265,8 @@ public class PaintArea extends JPanel {
                         break;
                     case MOVE_BOUNDING_BOX:
                     case MOVE_LINE:
+                        Cursor normalCursor = new Cursor(Cursor.DEFAULT_CURSOR);
+                        designerPanel.setCursor(normalCursor);
                         break;
                     default:
                         activeLine.addBestFit(p);
@@ -290,11 +294,13 @@ public class PaintArea extends JPanel {
         public void mousePressed(MouseEvent event) {
             PointFloat p = new PointFloat(event.getPoint());
             if (readyToMoveLine) {
+
                 readyToMoveLine = false;
                 startLineMovingPoint = p;
                 actionType = ActionType.MOVE_LINE;
                 return;
             }
+
             if (!event.isMetaDown()) {
                 for (int i = 0; i < activeLine.getPoints().size(); ++i) {
                     if (isInCircle(p, activeLine.get(i), POINT_DIAMETER)) {

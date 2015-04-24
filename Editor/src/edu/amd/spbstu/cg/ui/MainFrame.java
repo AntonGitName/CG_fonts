@@ -8,11 +8,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 
 /**
  * @author iAnton
@@ -70,6 +74,12 @@ public class MainFrame extends JFrame {
         exitFileMenuItem.addActionListener(new OnExitListener());
         openFontMenuItem.addActionListener(new OnOpenFontListener());
 
+        newFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('N', CTRL_DOWN_MASK));
+        openFontMenuItem.setAccelerator(KeyStroke.getKeyStroke('O', CTRL_DOWN_MASK));
+        saveFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('S', CTRL_DOWN_MASK));
+        openFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('L', CTRL_DOWN_MASK));
+        exitFileMenuItem.setAccelerator(KeyStroke.getKeyStroke('Q', CTRL_DOWN_MASK));
+
         fileMenu.add(newFileMenuItem);
         fileMenu.add(openFontMenuItem);
         fileMenu.add(saveFileMenuItem);
@@ -81,6 +91,9 @@ public class MainFrame extends JFrame {
 
         textSizeInc.addActionListener(new IncFontListener());
         textSizeDec.addActionListener(new DecFontListener());
+
+        textSizeDec.setAccelerator(KeyStroke.getKeyStroke('D', CTRL_DOWN_MASK));
+        textSizeInc.setAccelerator(KeyStroke.getKeyStroke('I', CTRL_DOWN_MASK));
 
         editMenu.add(textSizeInc);
         editMenu.add(textSizeDec);
@@ -155,16 +168,47 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            String text = editorPanel.getText();
+
+
+            final JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
+                    saveText(writer);
+                    writer.close();
+                } catch (FileNotFoundException e1) {
+                    e1.printStackTrace();
+                }
+            }
 
         }
+    }
+
+    private void saveText(PrintWriter writer) {
+        String text = editorPanel.getText();
+        int textSize = editorPanel.getTextSize();
+        writer.write(textSize + "\n" + text);
     }
 
     private final class OnOpenListener implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            final JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
+                loadText(fileChooser.getSelectedFile());
+            }
         }
+    }
+
+    private void loadText(File loadFile) {
+        List<String> linesInfo = new ArrayList<>();
+        try {
+            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        editorPanel.setFontSize(Integer.valueOf(linesInfo.get(0)));
+        editorPanel.setText(linesInfo.get(1));
     }
 
     private final class OnExitListener implements ActionListener {

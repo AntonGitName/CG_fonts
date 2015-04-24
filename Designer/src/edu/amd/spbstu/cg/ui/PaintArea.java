@@ -246,6 +246,7 @@ public class PaintArea extends JPanel {
         MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT, MOVE_BOUNDING_BOX, MOVE_LINE
     }
 
+    
     private final class MouseListener extends MouseAdapter {
         @Override
         public void mouseReleased(MouseEvent event) {

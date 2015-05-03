@@ -7,7 +7,6 @@ package edu.amd.spbstu.cg.ui;
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.util.UserSelectionLine;
 
-import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -21,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.awt.event.InputEvent.SHIFT_DOWN_MASK;
 
 /**
  * @author iAnton
@@ -45,6 +46,8 @@ public class MainFrame extends JFrame {
     private static final String MENU_ITEM_PASTE = "Paste";
     private static final String MENU_ITEM_ADD = "Add";
     private static final String MENU_ITEM_REMOVE = "Remove";
+
+    private static final int SHIFT = 4;
 
     private static final List<String> alphabet = new ArrayList<>();
     private final DesignerPanel designerPanel;
@@ -172,24 +175,24 @@ public class MainFrame extends JFrame {
         writer.write(s + "\n"); // first string -- letter
         List<PointFloat> bBox;
         bBox = designerPanel.getBoundingBox();
-        float bBoxWidth = bBox.get(1).x - bBox.get(0).x;
-        float bBoxHeight = bBox.get(3).y - bBox.get(0).y;
+        final float bBoxWidth = bBox.get(1).x - bBox.get(0).x;
+        final float bBoxHeight = bBox.get(3).y - bBox.get(0).y;
         writer.write(bBox.get(0).x + " " + bBox.get(0).y + " " + bBoxWidth + " " + bBoxHeight + "\n");
         java.util.List<UserSelectionLine> lines = designerPanel.getLinesInfo();
         writer.write(lines.size() + "\n"); // second string -- amount of lines
         for (UserSelectionLine line : lines) {
-            List<String> lineX = new ArrayList<>();
-            List<String> lineY = new ArrayList<>();
+            final List<String> lineX = new ArrayList<>();
+            final List<String> lineY = new ArrayList<>();
             for (PointFloat p : line.getPoints()) {
                 lineX.add((p.x - bBox.get(0).x) / bBoxWidth + "");
                 lineY.add((p.y - bBox.get(0).y) / bBoxHeight + "");
             }
             for (String str : lineX) {
-                writer.write(str + " "); // x coord of points
+                writer.write(str + " "); // x coordinates of points
             }
             writer.write("\n");
             for (String str : lineY) {
-                writer.write(str + " "); // y coord of points
+                writer.write(str + " "); // y coordinates of points
             }
             writer.write("\n");
             writer.write((line.getFakeStart().x - bBox.get(0).x) / bBoxWidth + " " + (line.getFakeStart().y - bBox.get(0).y) / bBoxHeight + "\n"); // first string for each line if start tangent
@@ -198,7 +201,7 @@ public class MainFrame extends JFrame {
     }
 
     private void loadFont(File loadFile) {
-        List<UserSelectionLine> lines = new ArrayList<>();
+        final List<UserSelectionLine> lines = new ArrayList<>();
         List<String> linesInfo = new ArrayList<>();
         try {
             linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
@@ -206,35 +209,34 @@ public class MainFrame extends JFrame {
             e.printStackTrace();
         }
         linesInfo.remove(0);
-        List<PointFloat> bBox = new ArrayList<>();
+        final List<PointFloat> bBox = new ArrayList<>();
         String[] bBoxData = linesInfo.get(0).split(" ");
-        float bBoxWidth = Float.valueOf(bBoxData[2]);
-        float bBoxHeight = Float.valueOf(bBoxData[3]);
+        final float bBoxWidth = Float.valueOf(bBoxData[2]);
+        final float bBoxHeight = Float.valueOf(bBoxData[3]);
         bBox.add(new PointFloat(Float.valueOf(bBoxData[0]), Float.valueOf(bBoxData[1])));
         bBox.add(new PointFloat(Float.valueOf(bBoxData[0]) + bBoxWidth, Float.valueOf(bBoxData[1])));
         bBox.add(new PointFloat(Float.valueOf(bBoxData[0]) + bBoxWidth, Float.valueOf(bBoxData[1]) + bBoxHeight));
         bBox.add(new PointFloat(Float.valueOf(bBoxData[0]), Float.valueOf(bBoxData[1]) + bBoxHeight));
-        final int shift = 4;
         linesInfo.remove(0);
 
         int numLines = Integer.valueOf(linesInfo.get(0));
         linesInfo.remove(0);
         for (int i = 0; i < numLines; ++i) {
             UserSelectionLine line = new UserSelectionLine();
-            String[] x = linesInfo.get(i * shift).split(" ");
-            String[] y = linesInfo.get(i * shift + 1).split(" ");
+            String[] x = linesInfo.get(i * SHIFT).split(" ");
+            String[] y = linesInfo.get(i * SHIFT + 1).split(" ");
             for (int j = 0; j < x.length; ++j) {
                 line.add(new PointFloat(Float.valueOf(x[j]) * bBoxWidth + bBox.get(0).x, Float.valueOf(y[j]) * bBoxHeight + bBox.get(0).y));
             }
-            String[] s = linesInfo.get(i * shift + 2).split(" "); // first tangent
+            String[] s = linesInfo.get(i * SHIFT + 2).split(" "); // first tangent
 
             line.setStartTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
-            s = linesInfo.get(i * shift + 3).split(" "); // first tangent
+            s = linesInfo.get(i * SHIFT + 3).split(" "); // first tangent
             line.setEndTangent(new PointFloat(Float.valueOf(s[0]) * bBoxWidth + bBox.get(0).x - line.get(0).x, Float.valueOf(s[1]) * bBoxHeight + bBox.get(0).y - line.get(0).y));
             lines.add(line);
         }
         designerPanel.setBoundingBox(bBox);
-        designerPanel.resetLines(lines);
+        designerPanel.restoreCurveListWithoutColors(lines);
     }
 
     public void updateMenuButtons(boolean canUndo, boolean canRedo, boolean canAdd, boolean canRemove) {
@@ -252,7 +254,7 @@ public class MainFrame extends JFrame {
             if (!CheckBBox()) {
                 return; /// SHOW MESSAGE
             }
-            Object[] possibilities = alphabet.toArray();
+            final Object[] possibilities = alphabet.toArray();
             Frame frame = new Frame();
             String s = (String) JOptionPane.showInputDialog(
                     frame,
@@ -306,14 +308,14 @@ public class MainFrame extends JFrame {
     private final class OnAddLineListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            designerPanel.addLine();
+            designerPanel.addCurve();
         }
     }
 
     private final class OnRemoveLineListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            designerPanel.removeLine();
+            designerPanel.removeCurve();
         }
     }
 
@@ -321,9 +323,9 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            List<UserSelectionLine> lines = new ArrayList<>();
+            final List<UserSelectionLine> lines = new ArrayList<>();
             lines.add(new UserSelectionLine(Color.RED));
-            designerPanel.resetLines(lines);
+            designerPanel.restoreCurveListWithoutColors(lines);
         }
     }
 

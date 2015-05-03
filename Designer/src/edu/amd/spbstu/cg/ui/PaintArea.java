@@ -28,6 +28,9 @@ public class PaintArea extends JPanel {
     private static final int MIN_POINTS_IN_LINE = 2;
     private static final int POINTS_PER_SPLINE = 10;
     private static final int MAX_SAVED_STATES = 30;
+    private static final int GRID_WIDTH = 40;
+    private static final int GRID_HEIGHT = 40;
+    private static final Stroke GRID_STROKE = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
     private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
 
     private static final Color START_TANGENT_COLOR = Color.getColor("bronze", 0xA9A121);
@@ -36,13 +39,12 @@ public class PaintArea extends JPanel {
 
     private final Paint texturePaint;
     private final DesignerPanel designerPanel;
-
+    private final List<PaintAreaState> savedStates = new ArrayList<>();
     private BoundingBox boundingBox = new BoundingBox(50, 50, 450, 450);
     private List<UserSelectionLine> selectionLines;
     private UserSelectionLine activeLine;
     private ActionType actionType;
     private int numPointMoved = -1;
-    private List<PaintAreaState> savedStates = new ArrayList<>();
     private int currentState = -1;
     private UserSelectionLine savedLine;
     private boolean readyToMoveLine;
@@ -74,6 +76,18 @@ public class PaintArea extends JPanel {
         return (x - x0) * (x - x0) + (y - y0) * (y - y0) < r * r;
     }
 
+    private static Area getResultingArea(List<Shape> shapes) {
+        final Area result = new Area();
+        for (Shape shape : shapes) {
+            result.exclusiveOr(new Area(shape));
+        }
+        return result;
+    }
+
+    public Color getActiveColor() {
+        return activeLine.getColor();
+    }
+
     private void loadState(PaintAreaState state) {
         selectionLines.clear();
         for (UserSelectionLine line : state.getSelectionLines()) {
@@ -81,9 +95,9 @@ public class PaintArea extends JPanel {
         }
         boundingBox = new BoundingBox(state.getBoundingBox());
         activeLine = selectionLines.get(state.getActiveLineIndex());
-        designerPanel.restoreLinelist(selectionLines, activeLine.getColor());
-        repaint();
+        designerPanel.restoreCurvesListWithColors(selectionLines);
         designerPanel.updateMenuButtons();
+        repaint();
     }
 
     public void loadPrevState() {
@@ -127,16 +141,12 @@ public class PaintArea extends JPanel {
         }
     }
 
-    public void setActiveLine(int activeLine) {
-        this.activeLine = selectionLines.get(activeLine);
-    }
-
-    private static Area getResultingArea(List<Shape> shapes) {
-        final Area result = new Area();
-        for (Shape shape : shapes) {
-            result.exclusiveOr(new Area(shape));
+    public void setActiveLine(String colorName) {
+        for (UserSelectionLine line : selectionLines) {
+            if (DesignerPanel.ALL_COLORS_MAP.get(line.getColor()).equals(colorName)) {
+                activeLine = line;
+            }
         }
-        return result;
     }
 
     public void paintComponent(Graphics g) {
@@ -145,6 +155,7 @@ public class PaintArea extends JPanel {
         final Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+        drawGrid(g2);
         drawFontArea(g2);
         drawCurves(g2);
         drawBoundingBox(g2);
@@ -169,6 +180,23 @@ public class PaintArea extends JPanel {
         }
         g2.setPaint(texturePaint);
         g2.fill(getResultingArea(shapes));
+    }
+
+    private void drawGrid(Graphics2D g2) {
+        final int width = getWidth();
+        final int height = getHeight();
+        int y = -GRID_HEIGHT / 2;
+        int x = -GRID_WIDTH / 2;
+        g2.setColor(Color.lightGray);
+        g2.setStroke(GRID_STROKE);
+        while (y < height) {
+            g2.drawLine(0, y, width, y);
+            y += GRID_HEIGHT;
+        }
+        while (x < width) {
+            g2.drawLine(x, 0, x, height);
+            x += GRID_WIDTH;
+        }
     }
 
     private void drawCurves(Graphics2D g2) {
@@ -199,20 +227,16 @@ public class PaintArea extends JPanel {
     }
 
     public void addLine(Color color) {
-        if (selectionLines.size() < 7) {
-            selectionLines.add(activeLine = new UserSelectionLine(color));
-            repaint();
-        }
+        selectionLines.add(activeLine = new UserSelectionLine(color));
         saveState();
+        repaint();
     }
 
-    public Color removeLine(int x) {
-        final Color color = activeLine.getColor();
+    public void removeActiveLine() {
+        selectionLines.remove(activeLine);
         activeLine = selectionLines.get(0);
-        selectionLines.remove(x);
-        repaint();
         saveState();
-        return color;
+        repaint();
     }
 
     public List<UserSelectionLine> getLineInfo() {
@@ -222,12 +246,14 @@ public class PaintArea extends JPanel {
     public void setLines(List<UserSelectionLine> lines) {
         selectionLines = lines;
         activeLine = selectionLines.get(0);
+        saveState();
+        repaint();
     }
 
     public void doubleSavedCurve(Color color) {
         savedLine.setColor(color);
         selectionLines.add(activeLine = new UserSelectionLine(savedLine));
-        designerPanel.restoreLinelist(selectionLines, activeLine.getColor());
+        designerPanel.restoreCurvesListWithColors(selectionLines);
         saveState();
         repaint();
     }
@@ -246,7 +272,7 @@ public class PaintArea extends JPanel {
         MOVE_POINT, CHANGE_VECTOR, NO_ACTION, DELETE_POINT, MOVE_BOUNDING_BOX, MOVE_LINE
     }
 
-    
+
     private final class MouseListener extends MouseAdapter {
         @Override
         public void mouseReleased(MouseEvent event) {

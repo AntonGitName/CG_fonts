@@ -81,10 +81,6 @@ public class UserSelectionLine {
         return points.get(index);
     }
 
-    public PointFloat remove(int index) {
-        return points.remove(index);
-    }
-
     public PointFloat set(int index, PointFloat element) {
         return points.set(index, element);
     }

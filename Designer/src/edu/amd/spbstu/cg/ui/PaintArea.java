@@ -31,7 +31,7 @@ public class PaintArea extends JPanel {
     private static final int GRID_WIDTH = 40;
     private static final int GRID_HEIGHT = 40;
     private static final Stroke GRID_STROKE = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
-    private static final String PATTERN_IMAGE_FILENAME = "res/patternImage.png";
+    private static final String PATTERN_IMAGE_FILENAME = "Designer/res/patternImage.png";
 
     private static final Color START_TANGENT_COLOR = Color.getColor("bronze", 0xA9A121);
     private static final Color END_TANGENT_COLOR = Color.getColor("violet", 0x8E21A9);

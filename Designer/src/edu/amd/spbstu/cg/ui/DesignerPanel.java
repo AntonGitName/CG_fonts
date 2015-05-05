@@ -21,8 +21,8 @@ class DesignerPanel extends JPanel implements ListSelectionListener {
     public static final Map<Color, String> ALL_COLORS_MAP;
     private static final Dimension MINIMUM_SIZE = new Dimension(100, 50);
     private static final int DIVIDER_LOCATION = 150;
-    private static final String REMOVE_ICON = "res/remove.png";
-    private static final String ADD_ICON = "res/add.png";
+    private static final String REMOVE_ICON = "Designer/res/remove.png";
+    private static final String ADD_ICON = "Designer/res/add.png";
     private static final double LEFT_PANE_DIVIDER = 0.9;
     private static final Color[] ALL_COLORS = {Color.blue, Color.cyan, Color.green, Color.orange, Color.pink, Color.darkGray};
     private static final String[] COLOR_NAMES = {"Blue", "Cyan", "Green", "Orange", "Pink", "Gray"};

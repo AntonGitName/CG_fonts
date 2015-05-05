@@ -7,13 +7,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
@@ -36,8 +35,9 @@ public class MainFrame extends JFrame {
     private static final String MENU_FONT_OPEN = "Open font";
     private static final String MENU_TEXT_INC = "Increase size";
     private static final String MENU_TEXT_DEC = "Decrease size";
-    private static final String DEFAULT_FONT_FOLDER = "res/defaultFont";
+    private static final String DEFAULT_FONT_FOLDER = "Editor/res/defaultFont/";
 
+    private static final String FONT_FILE_EXTENSION = ".fnttp";
 
     private final EditorPanel editorPanel;
     private JMenuItem textSizeInc;
@@ -102,11 +102,22 @@ public class MainFrame extends JFrame {
         menuBar.add(editMenu);
         setJMenuBar(menuBar);
 
-        loadFont(new File(DEFAULT_FONT_FOLDER));
+        final List<File> fontFiles;
+        try {
+            fontFiles = getDefaultFontFiles();
+            if (fontFiles.isEmpty()) {
+                loadFont(new File(DEFAULT_FONT_FOLDER));
+            } else {
+                loadFont(fontFiles);
+            }
+        } catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
-    private void loadFont(File selectedFolder) {
-        for (final File fileEntry : selectedFolder.listFiles()) {
+    private void loadFont(List<File> fontFiles) {
+        for (final File fileEntry : fontFiles) {
             if (!fileEntry.isDirectory()) {
                 if (checkTypeFile(fileEntry)) {
 
@@ -145,15 +156,76 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private List<File> getDefaultFontFiles() throws URISyntaxException, IOException {
+        final List<File> result = new ArrayList<>();
+        final ClassLoader loader = MainFrame.class.getClassLoader();
+        int x = 0;
+        String filename;
+        for (char c = 'a'; c <= 'z'; ++c) {
+            filename = DEFAULT_FONT_FOLDER + c + FONT_FILE_EXTENSION;
+            final InputStream inputStream = loader.getResourceAsStream(filename);
+            if (inputStream != null) {
+                final File file = File.createTempFile("editorTempFile" + ++x, FONT_FILE_EXTENSION);
+                file.deleteOnExit();
+                try (OutputStream outputStream = new FileOutputStream(file)) {
+                    int read;
+                    final byte[] bytes = new byte[1024];
+                    while ((read = inputStream.read(bytes)) != -1) {
+                        outputStream.write(bytes, 0, read);
+                    }
+                }
+                result.add(file);
+            }
+        }
+        for (char c = 'A'; c <= 'Z'; ++c) {
+            filename = DEFAULT_FONT_FOLDER + c + FONT_FILE_EXTENSION;
+            final InputStream inputStream = loader.getResourceAsStream(filename);
+            if (inputStream != null) {
+                final File file = File.createTempFile("editorTempFile" + ++x, FONT_FILE_EXTENSION);
+                file.deleteOnExit();
+                try (OutputStream outputStream = new FileOutputStream(file)) {
+                    int read;
+                    final byte[] bytes = new byte[1024];
+                    while ((read = inputStream.read(bytes)) != -1) {
+                        outputStream.write(bytes, 0, read);
+                    }
+                }
+                result.add(file);
+            }
+        }
+        return result;
+    }
+
+    private void loadFont(File selectedFolder) {
+        loadFont(Arrays.asList(selectedFolder.listFiles()));
+    }
+
     private boolean checkTypeFile(File fileEntry) {
         String fileName = fileEntry.getName();
         String s = fileName.substring(fileName.lastIndexOf('.'), fileName.length());
-        return s.equals(".fnttp");
+        return s.equals(FONT_FILE_EXTENSION);
     }
 
     public void updateMenuButtons(boolean canInc, boolean canDec) {
         textSizeInc.setEnabled(canInc);
         textSizeDec.setEnabled(canDec);
+    }
+
+    private void saveText(PrintWriter writer) {
+        String text = editorPanel.getText();
+        int textSize = editorPanel.getTextSize();
+        writer.write(textSize + "\n" + text);
+    }
+
+    private void loadText(File loadFile) {
+        List<String> linesInfo = new ArrayList<>();
+        try {
+            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        editorPanel.setFontSize(Integer.valueOf(linesInfo.get(0)));
+        editorPanel.setText(linesInfo.get(1));
     }
 
     private final class OnNewListener implements ActionListener {
@@ -183,12 +255,6 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private void saveText(PrintWriter writer) {
-        String text = editorPanel.getText();
-        int textSize = editorPanel.getTextSize();
-        writer.write(textSize + "\n" + text);
-    }
-
     private final class OnOpenListener implements ActionListener {
 
         @Override
@@ -198,17 +264,6 @@ public class MainFrame extends JFrame {
                 loadText(fileChooser.getSelectedFile());
             }
         }
-    }
-
-    private void loadText(File loadFile) {
-        List<String> linesInfo = new ArrayList<>();
-        try {
-            linesInfo = Files.readAllLines(Paths.get(loadFile.toURI()));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        editorPanel.setFontSize(Integer.valueOf(linesInfo.get(0)));
-        editorPanel.setText(linesInfo.get(1));
     }
 
     private final class OnExitListener implements ActionListener {

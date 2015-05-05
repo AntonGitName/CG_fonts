@@ -24,20 +24,19 @@ public class EditorPanel extends JPanel implements ListSelectionListener {
     private final MainFrame mainFrame;
     private final Map<String, LetterFont> letterFonts = new HashMap<>();
     private final DefaultListModel<String> lineListModel = new DefaultListModel<>();
-    private final JList<String> linelist;
+    private final JList<String> curveList;
     private final JTextPane textPane;
     private final SpinnerModel fontSpinnerModel = new SpinnerNumberModel(PaintArea.DEFAULT_FONT_SIZE, MIN_VALUE, MAX_VALUE, 1);
     private PaintArea paintArea;
     private ArrayList<String> activeLetters = new ArrayList<>();
-    private Integer fontSize;
 
     public EditorPanel(MainFrame mainFrame) {
         super(new BorderLayout());
         this.mainFrame = mainFrame;
-        linelist = new JList<>(lineListModel);
-        linelist.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        linelist.addListSelectionListener(this);
-        final JScrollPane listScrollPane = new JScrollPane(linelist);
+        curveList = new JList<>(lineListModel);
+        curveList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        curveList.addListSelectionListener(this);
+        final JScrollPane listScrollPane = new JScrollPane(curveList);
 
         textPane = new JTextPane();
         textPane.getDocument().addDocumentListener(new TextChangedListener());

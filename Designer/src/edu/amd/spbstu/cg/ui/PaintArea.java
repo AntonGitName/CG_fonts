@@ -14,7 +14,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +60,7 @@ public class PaintArea extends JPanel {
 
         BufferedImage imagePattern = null;
         try {
-            imagePattern = ImageIO.read(new File(PATTERN_IMAGE_FILENAME));
+            imagePattern = ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(PATTERN_IMAGE_FILENAME));
         } catch (IOException e) {
             e.printStackTrace();
         }

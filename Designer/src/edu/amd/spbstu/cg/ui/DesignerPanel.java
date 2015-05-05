@@ -3,12 +3,14 @@ package edu.amd.spbstu.cg.ui;
 import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.util.UserSelectionLine;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -52,14 +54,27 @@ class DesignerPanel extends JPanel implements ListSelectionListener {
         final JScrollPane listScrollPane = new JScrollPane(curvesList);
         final JPanel buttonsPanel = new JPanel();
 
-        buttonsPanel.add(addLineButton = new JButton(new ImageIcon(ADD_ICON)));
+        final ImageIcon addIcon = new ImageIcon();
+        try {
+            addIcon.setImage(ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(ADD_ICON)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        buttonsPanel.add(addLineButton = new JButton(addIcon));
         addLineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addCurve();
             }
         });
-        buttonsPanel.add(removeLineButton = new JButton(new ImageIcon(REMOVE_ICON)));
+
+        final ImageIcon removeIcon = new ImageIcon();
+        try {
+            removeIcon.setImage(ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(REMOVE_ICON)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        buttonsPanel.add(removeLineButton = new JButton(removeIcon));
         removeLineButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

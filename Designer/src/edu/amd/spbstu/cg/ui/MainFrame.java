@@ -8,6 +8,8 @@ import edu.amd.spbstu.cg.geom.PointFloat;
 import edu.amd.spbstu.cg.util.UserSelectionLine;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -266,10 +268,18 @@ public class MainFrame extends JFrame {
                     "a");
 
             if ((s != null) && (s.length() > 0)) {
-
+                final FileFilter filter = new FileNameExtensionFilter("Font file", "fnttp");
                 final JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setAcceptAllFileFilterUsed(false);
+                fileChooser.addChoosableFileFilter(filter);
+                final String suffix = ".fnttp";
                 if (fileChooser.showSaveDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
-                    try (final PrintWriter writer = new PrintWriter(fileChooser.getSelectedFile())) {
+                    File fileToBeSaved = fileChooser.getSelectedFile();
+
+                    if (!fileChooser.getSelectedFile().getAbsolutePath().endsWith(suffix)) {
+                        fileToBeSaved = new File(fileChooser.getSelectedFile() + suffix);
+                    }
+                    try (final PrintWriter writer = new PrintWriter(fileToBeSaved)) {
                         saveLetter(s, writer);
                         writer.close();
                     } catch (FileNotFoundException e1) {
@@ -285,7 +295,11 @@ public class MainFrame extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            final FileFilter filter = new FileNameExtensionFilter("Font file", "fnttp");
             final JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setAcceptAllFileFilterUsed(false);
+            fileChooser.addChoosableFileFilter(filter);
+
             if (fileChooser.showOpenDialog(MainFrame.this) == JFileChooser.APPROVE_OPTION) {
                 loadFont(fileChooser.getSelectedFile());
             }

@@ -10,7 +10,9 @@ import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import java.util.List;
 
@@ -56,7 +58,12 @@ class DesignerPanel extends JPanel implements ListSelectionListener {
 
         final ImageIcon addIcon = new ImageIcon();
         try {
-            addIcon.setImage(ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(ADD_ICON)));
+            final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(ADD_ICON);
+            if (inputStream != null) {
+                addIcon.setImage(ImageIO.read(inputStream));
+            } else {
+                addIcon.setImage(ImageIO.read(new File(ADD_ICON)));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,7 +77,12 @@ class DesignerPanel extends JPanel implements ListSelectionListener {
 
         final ImageIcon removeIcon = new ImageIcon();
         try {
-            removeIcon.setImage(ImageIO.read(this.getClass().getClassLoader().getResourceAsStream(REMOVE_ICON)));
+            final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(REMOVE_ICON);
+            if (inputStream != null) {
+                removeIcon.setImage(ImageIO.read(inputStream));
+            } else {
+                removeIcon.setImage(ImageIO.read(new File(REMOVE_ICON)));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
